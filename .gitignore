@@ -1,0 +1,88 @@
+# Python-related ignores
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+.env/
+.venv/
+ENV/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Testing and coverage
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environments and secrets
+.env
+.venv
+env/
+venv/
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# Project-specific ignores (add any specific files or patterns here)
+# For example:
+# config.ini
+# secret_keys.txt
+
+# Backup files
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
