@@ -1,0 +1,27 @@
+ALTER TABLE "authenticator" ALTER COLUMN "credentialId" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "authenticator" ALTER COLUMN "providerAccountId" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "authenticator" ALTER COLUMN "credentialPublicKey" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "authenticator" ALTER COLUMN "credentialDeviceType" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "authenticator" ALTER COLUMN "transports" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "type" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "provider" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "providerAccountId" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "refresh_token" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "access_token" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "token_type" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "scope" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "id_token" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "account" ALTER COLUMN "session_state" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "session" ALTER COLUMN "sessionToken" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "name" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "email" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "image" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "location" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "adress" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "shopname" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "shoptextfont" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "shoptextcolor" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "user" ALTER COLUMN "banner" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "verificationNumberSessions" ALTER COLUMN "verificationNumber" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "verificationToken" ALTER COLUMN "identifier" SET DATA TYPE text;--> statement-breakpoint
+ALTER TABLE "verificationToken" ALTER COLUMN "token" SET DATA TYPE text;
