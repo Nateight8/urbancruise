@@ -1,0 +1,63 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+.out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*.local
+
+# VSCode settings
+.vscode/
+
+# macOS files
+.DS_Store
+
+# Linux files
+*.swp
+
+# Miscellaneous
+.idea/         # IDE settings (e.g., WebStorm, IntelliJ)
+*.iml          # IDE module files
+*.lock-wscript
+.cache/
+.parcel-cache/
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage files
+coverage/
+
+# Apollo Studio files
+apollo-cache/
+apollo.config.js
+apollo.config.cjs
+
+# Generated files
+.graphqlrc*
+graphql.schema.json
+schema.graphql
+
+# Tests
+coverage/
+.nyc_output/

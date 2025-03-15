@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+
+# Debug
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Cache directories
+.cache/
+.next/
+.swc/
+
+# Local database files
+*.sqlite
+*.sqlite3
+
+# Temporary files
+.tmp/
+.temp/
+
+# Server specific
+server/dist/
+server/build/
+server/coverage/
+
+# Client specific
+client/.next/
+client/out/
+client/.vercel/
+client/build/
+client/.env*.local
+
+# Package manager specific
+.npmrc
+.yarnrc
+.pnpmrc
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# System Files
+.DS_Store
+Thumbs.db
