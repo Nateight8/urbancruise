@@ -15,7 +15,6 @@ export const userTypeDefs = gql`
     shoptextfont: String
     shoptextcolor: String
     banner: String
-
   }
 
   type GetLoggedInUserReturn {
@@ -25,7 +24,6 @@ export const userTypeDefs = gql`
 
   type Query {
     getLoggedInUser: GetLoggedInUserReturn
-    listUsers: [User]
   }
 
   type Mutation {

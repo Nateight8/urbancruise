@@ -8,57 +8,12 @@ const userResolvers = {
     // Get logged in user
     getLoggedInUser: async (_: any, __: any, context: GraphqlContext) => {
       console.log("SERVER SAYS HI");
-      const { db, session } = context;
-      const { user: loggedInUser } = session;
 
-      if (!loggedInUser?.id) {
-        console.error("User not authenticated, session data:", session);
-        throw new GraphQLError("Not authenticated", {
-          extensions: {
-            code: "UNAUTHORIZED",
-          },
-        });
-      }
-
-      try {
-        //will be using this when creating onboarding
-        const sessionId = loggedInUser?.id;
-        const userRecord = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, sessionId));
-
-        const user = userRecord[0];
-
-        return { status: 200, user };
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        // Throw an error with appropriate details
-        throw new GraphQLError("Failed to fetch user", {
-          extensions: {
-            code: "INTERNAL_SERVER_ERROR",
-          },
-        });
-      }
-    },
-
-    // List all users
-    listUsers: async (
-      _: any,
-      __: any,
-      context: GraphqlContext
-    ): Promise<User[]> => {
-      const { db } = context;
-
-      const users = await db.query.users.findMany();
-      console.log(context);
-
-      return users;
+      return { status: 200, user: null };
     },
   },
 
   Mutation: {
-    // Update an existing user
     updateUser: async (
       _: any,
       { id, userInput }: { id: string; userInput: UserInput }
