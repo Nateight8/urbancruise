@@ -8,6 +8,13 @@
       "when": 1734129947024,
       "tag": "0000_naive_sheva_callister",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1742122725101,
+      "tag": "0001_young_rogue",
+      "breakpoints": true
     }
   ]
 }

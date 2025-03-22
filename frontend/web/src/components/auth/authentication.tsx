@@ -1,8 +1,8 @@
-import { PropsWithChildren } from "react";
-import OAuthSignIn from "../../components/auth/oauth-sign";
-import LayoutContainer from "../../components/auth/layout-cointainer";
+import LayoutContainer from "./layout-cointainer";
+import OAuthSignIn from "./oauth-sign";
+import { AuthForm } from "./auth-form";
 
-export default async function Layout({ children }: PropsWithChildren) {
+export default function Authentication() {
   return (
     <div className="h-screen py-8 px-4">
       <LayoutContainer>
@@ -28,7 +28,8 @@ export default async function Layout({ children }: PropsWithChildren) {
               <span className="px-4 text-sm text-muted-foreground">OR</span>
               <div className="border-t flex-grow"></div>
             </div>
-            {children}
+            <AuthForm />
+            {/* <SignUpForm /> */}
           </div>
 
           {/* {children} */}

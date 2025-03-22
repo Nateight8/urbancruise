@@ -1,30 +1,46 @@
 "use client";
-import userOperations, { GetLoggedInUser } from "@/graphql/operations/user";
+
 import { useQuery } from "@apollo/client";
-import { SignOut } from "@/components/sign-out-btn";
+import userOperations from "@/graphql/operations/user-operations";
+import Authentication from "@/components/auth/authentication";
+import { UsernameForm } from "@/components/auth/username-form";
+import { useState, useEffect } from "react";
+import LoadingScreen from "@/components/ui/loading-screen";
+import Dashboard from "@/components/dashboard/dashboard";
 
 export default function Home() {
-  const { data } = useQuery<GetLoggedInUser>(
-    userOperations.Querries.createPost
+  const { data, loading, refetch } = useQuery(
+    userOperations.Querries.getLoggedInUser
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const user = data?.getLoggedInUser.user;
 
-  //TODA: WE WILL THINK OF HOW TO USE STATES
+  // Only set loading to false after initial load completes and we're confident about auth state
+  useEffect(() => {
+    if (!loading) {
+      // Add a small delay to ensure UI stability
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
 
-  // if (data?.getLoggedInUser.status === 200) {
-  //   redirect("/dashboard");
-  // }
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
-  console.log("SESSION: ", data);
+  // Keep showing loading screen until we're confident about auth state
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
-  return (
-    <div className="">
-      <SignOut />
+  // Once loading is complete, render the appropriate component based on auth state
+  if (!user) {
+    return <Authentication />;
+  }
 
-      {data?.getLoggedInUser.status === 200 && (
-        <div>
-          <p>Logged in as {data?.getLoggedInUser.user.name}</p>
-        </div>
-      )}
-    </div>
-  );
+  if (user?.onboardingCompleted === false) {
+    return <UsernameForm onSuccess={() => refetch()} />;
+  }
+
+  // User is authenticated and has completed onboarding
+  return <Dashboard />;
 }

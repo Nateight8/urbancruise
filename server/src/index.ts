@@ -54,7 +54,7 @@ app.use(
     context: async ({ req, res }) => {
       const session = res.locals.session || null; // Ensure fallback
 
-      console.log("Session:", session);
+      // console.log("Session:", session);
 
       return { db, session };
     },

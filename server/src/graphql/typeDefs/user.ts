@@ -1,6 +1,12 @@
 import { gql } from "graphql-tag";
 
 export const userTypeDefs = gql`
+  type UpdateUserResponse {
+    success: Boolean!
+    message: String
+    user: User
+  }
+
   type User {
     id: ID!
     name: String
@@ -15,6 +21,10 @@ export const userTypeDefs = gql`
     shoptextfont: String
     shoptextcolor: String
     banner: String
+    username: String
+    avatar: String
+    createdAt: String
+    updatedAt: String
   }
 
   type GetLoggedInUserReturn {
@@ -22,13 +32,17 @@ export const userTypeDefs = gql`
     user: User
   }
 
+  type LoggedInUserResponse {
+    user: User
+  }
+
   type Query {
     getLoggedInUser: GetLoggedInUserReturn
+    checkUsernameAvailability(username: String!): Boolean!
   }
 
   type Mutation {
     updateUser(
-      id: ID!
       name: String
       email: String
       image: String
@@ -40,8 +54,25 @@ export const userTypeDefs = gql`
       shoptextfont: String
       shoptextcolor: String
       banner: String
-    ): User
+    ): UpdateUserResponse
+
+    updateUsername(username: String!): UpdateUserResponse
 
     deleteUser(id: ID!): Boolean
   }
 `;
+
+export interface UserProfileInput {
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  location: string | null;
+  address: string | null;
+  phoneVerified: boolean | null;
+  onboardingCompleted: boolean | null;
+  shopname: string | null;
+  shoptextfont: string | null;
+  shoptextcolor: string | null;
+  banner: string | null;
+  username: string | null;
+}

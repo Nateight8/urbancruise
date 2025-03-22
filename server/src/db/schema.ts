@@ -34,6 +34,7 @@ export const users = pgTable("user", {
   shoptextfont: text("shoptextfont"),
   shoptextcolor: text("shoptextcolor"),
   banner: text("banner"),
+  username: text("username").unique(),
 });
 
 export const accounts = pgTable(
@@ -127,4 +128,4 @@ Der Käufer klickt den 'Kaufen'-Button, es wird ein Eintrag gemacht und der Verk
 Es gibt eine Seite für Konversation, auf button click eröffnet man eine Konversation die hat erstmal diese Felder: Käufer, Verkäufer, Produkt, Status
 */
 
-export type UserType = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect;

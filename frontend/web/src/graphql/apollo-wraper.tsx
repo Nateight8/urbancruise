@@ -28,6 +28,17 @@ function makeClient() {
     // use the `InMemoryCache` from "@apollo/experimental-nextjs-app-support"
     cache: new InMemoryCache(),
     link: httpLink,
+    defaultOptions: {
+      // Disable cache for SSR to prevent hydration mismatches
+      watchQuery: {
+        fetchPolicy: "network-only",
+        errorPolicy: "ignore",
+      },
+      query: {
+        fetchPolicy: "network-only",
+        errorPolicy: "all",
+      },
+    },
   });
 }
 
