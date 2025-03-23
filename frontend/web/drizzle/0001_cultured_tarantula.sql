@@ -1,1 +1,0 @@
-ALTER TABLE "session" ALTER COLUMN "sessionToken" SET DATA TYPE text;
