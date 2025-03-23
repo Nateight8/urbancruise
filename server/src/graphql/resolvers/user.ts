@@ -50,10 +50,12 @@ const userResolvers = {
       context: GraphqlContext
     ) => {
       const { db } = context;
+      const lowercaseUsername = username.toLowerCase();
 
-      // Check if the username already exists in the database
+      // Check if the username already exists in the database using case-insensitive comparison
       const existingUser = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.username, username),
+        where: (users, { sql }) =>
+          sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
 
       // Return true if username is available (not found), false otherwise
@@ -100,7 +102,8 @@ const userResolvers = {
 
         if (
           userInput.username &&
-          userInput.username === existingUser[0].username
+          userInput.username.toLowerCase() ===
+            existingUser[0].username?.toLowerCase()
         ) {
           return {
             success: false,
@@ -149,6 +152,8 @@ const userResolvers = {
     ) => {
       const { session, db } = context;
 
+      const lowercaseUsername = username.toLowerCase();
+
       if (!session || !session.user) {
         return {
           success: false,
@@ -158,9 +163,10 @@ const userResolvers = {
       }
 
       try {
-        // Check if username is already taken
+        // Check if username is already taken using case-insensitive comparison
         const existingUser = await db.query.users.findFirst({
-          where: (u, { eq }) => eq(u.username, username),
+          where: (u, { sql }) =>
+            sql`LOWER(${u.username}) = ${lowercaseUsername}`,
         });
 
         if (existingUser) {
@@ -188,7 +194,7 @@ const userResolvers = {
         const [updatedUser] = await db
           .update(users)
           .set({
-            username,
+            username: lowercaseUsername,
             onboardingCompleted: true,
           })
           .where(eq(users.email, session.user!.email as string))
