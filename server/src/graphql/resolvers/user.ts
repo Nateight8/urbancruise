@@ -4,6 +4,8 @@ import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
 
+import { Snowflake } from "@theinternetfolks/snowflake";
+
 const userResolvers = {
   Query: {
     // Get logged in user
@@ -46,13 +48,9 @@ const userResolvers = {
           where: session?.user?.id ? ne(users.id, session.user.id) : undefined,
         });
 
-        // Return the data in the correct format
         return {
           status: 200,
-          users: allUsers.map((user) => ({
-            ...user,
-            loggedInUserId: session?.user?.id || null,
-          })),
+          users: allUsers,
         };
       } catch (error) {
         console.error("Error in getAllUsers resolver:", error);
@@ -216,6 +214,7 @@ const userResolvers = {
           .set({
             username: lowercaseUsername,
             onboardingCompleted: true,
+            conversationParticipationId: Snowflake.generate(),
           })
           .where(eq(users.email, session.user!.email as string))
           .returning();
