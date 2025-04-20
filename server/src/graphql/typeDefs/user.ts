@@ -17,9 +17,6 @@ export const userTypeDefs = gql`
     address: String
     phoneVerified: Boolean
     onboardingCompleted: Boolean
-    shopname: String
-    shoptextfont: String
-    shoptextcolor: String
     banner: String
     username: String
     avatar: String
@@ -36,8 +33,31 @@ export const userTypeDefs = gql`
     user: User
   }
 
+  type GetAllUsersResponse {
+    users: [UserWithLoggedInId!]!
+  }
+
+  type UserWithLoggedInId {
+    id: ID!
+    name: String
+    email: String!
+    emailVerified: String
+    image: String
+    location: String
+    address: String
+    phoneVerified: Boolean
+    onboardingCompleted: Boolean
+    banner: String
+    username: String
+    avatar: String
+    createdAt: String
+    updatedAt: String
+    loggedInUserId: ID!
+  }
+
   type Query {
     getLoggedInUser: GetLoggedInUserReturn
+    getAllUsers: GetAllUsersResponse
     checkUsernameAvailability(username: String!): Boolean!
   }
 
@@ -50,9 +70,7 @@ export const userTypeDefs = gql`
       address: String
       phoneVerified: Boolean
       onboardingCompleted: Boolean
-      shopname: String
-      shoptextfont: String
-      shoptextcolor: String
+
       banner: String
     ): UpdateUserResponse
 

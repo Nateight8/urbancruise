@@ -1,15 +1,13 @@
-import { User, users } from "@/db/schema.js";
+import { User, users } from "../../db/schema.js";
 import GraphqlContext, { UserInput } from "@/types/types.utils.js";
-import { eq } from "drizzle-orm";
+import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
 
 const userResolvers = {
   Query: {
     // Get logged in user
-    // Get logged in user
     getLoggedInUser: async (_: any, __: any, context: GraphqlContext) => {
-      console.log("SERVER SAYS HI");
       const { db, session } = context;
       const { user: loggedInUser } = session;
 
@@ -23,22 +21,66 @@ const userResolvers = {
       }
 
       try {
-        //will be using this when creating onboarding
-        const sessionId = loggedInUser?.id;
         const userRecord = await db
           .select()
           .from(users)
-          .where(eq(users.id, sessionId));
+          .where(eq(users.id, loggedInUser.id));
 
         const user = userRecord[0];
 
         return { status: 200, user };
       } catch (error) {
         console.error("Error fetching user:", error);
-        // Throw an error with appropriate details
         throw new GraphQLError("Failed to fetch user", {
           extensions: {
             code: "INTERNAL_SERVER_ERROR",
+          },
+        });
+      }
+    },
+
+    getAllUsers: async (_: any, __: any, { session, db }: GraphqlContext) => {
+      if (!session?.user?.id) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+
+      try {
+        const loggedInUser = await db.query.users.findFirst({
+          where: eq(users.id, session.user.id),
+        });
+
+        if (!loggedInUser) {
+          throw new GraphQLError("User not found", {
+            extensions: {
+              code: "NOT_FOUND",
+            },
+          });
+        }
+
+        const allUsers = await db.query.users.findMany({
+          where: ne(users.id, loggedInUser.id),
+        });
+
+        const usersList = allUsers.map((user) => ({
+          ...user,
+          loggedInUserId: loggedInUser.id,
+        }));
+
+        return {
+          status: 200,
+          users: usersList,
+        };
+      } catch (error) {
+        console.error("Error in getAllUsers resolver:", error);
+        throw new GraphQLError("Failed to fetch users", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            originalError:
+              error instanceof Error ? error.message : "Unknown error",
           },
         });
       }
@@ -52,13 +94,11 @@ const userResolvers = {
       const { db } = context;
       const lowercaseUsername = username.toLowerCase();
 
-      // Check if the username already exists in the database using case-insensitive comparison
       const existingUser = await db.query.users.findFirst({
         where: (users, { sql }) =>
           sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
 
-      // Return true if username is available (not found), false otherwise
       return !existingUser;
     },
   },
