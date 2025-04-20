@@ -11,6 +11,7 @@ const userOperations = {
             email
             avatar
             onboardingCompleted
+            conversationParticipationId
           }
         }
       }
@@ -23,7 +24,7 @@ const userOperations = {
             id
             name
             username
-            loggedInUserId
+            conversationParticipationId
           }
         }
       }
@@ -59,6 +60,7 @@ interface GetLoggedInUserResponse {
       username: string;
       email: string;
       avatar: string;
+      conversationParticipationId: string;
     };
   };
 }
@@ -85,7 +87,7 @@ export interface User {
   id: string;
   name: string | null;
   username: string | null;
-  loggedInUserId: string;
+  conversationParticipationId: string;
 }
 
 export type { GetLoggedInUserResponse, UpdateUsernameResponse };

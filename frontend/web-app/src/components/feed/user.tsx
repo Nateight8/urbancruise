@@ -3,8 +3,14 @@ import { IconUser } from "@tabler/icons-react";
 import { Button } from "../ui/button";
 import { IconMessageCircle } from "@tabler/icons-react";
 import type { User } from "@/graphql/operations/user-operations";
+import { useRouter } from "next/navigation";
+import { useCachedUser } from "@/hooks/use-cached-user";
 
 export default function User({ user }: { user: User }) {
+  const router = useRouter();
+
+  const loggedInUser = useCachedUser();
+
   return (
     <div>
       <div className="flex items-center gap-2 flex-col">
@@ -19,7 +25,15 @@ export default function User({ user }: { user: User }) {
           <p>{user.name}</p>
           <p>{user.username}</p>
         </div>
-        <Button variant="outline">
+        <Button
+          disabled={!loggedInUser}
+          onClick={() => {
+            router.push(
+              `/messages/${loggedInUser?.conversationParticipationId}-${user.conversationParticipationId}`
+            );
+          }}
+          variant="outline"
+        >
           <IconMessageCircle />
         </Button>
       </div>

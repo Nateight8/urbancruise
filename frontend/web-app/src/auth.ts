@@ -3,9 +3,9 @@ import NextAuth from "next-auth";
 import google from "next-auth/providers/google";
 import github from "next-auth/providers/github";
 // import passkey from "next-auth/providers/passkey";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "./db/schema";
 
+import { db } from "./db/schema";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 // import { drizzleAdapter } from "../adapter";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

@@ -8,8 +8,6 @@ import {
   uniqueIndex,
   boolean,
   uuid,
-  bigserial,
-  bigint,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 import postgres from "postgres";
@@ -20,7 +18,7 @@ const pool = postgres(connectionString, { max: 1 });
 export const db = drizzle(pool);
 
 export const users = pgTable("user", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: text("id").primaryKey(),
   name: text("name"),
   email: text("email").notNull(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
@@ -39,7 +37,7 @@ export const users = pgTable("user", {
 export const accounts = pgTable(
   "account",
   {
-    userId: bigint("userId", { mode: "number" })
+    userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").$type<AdapterAccount["type"]>().notNull(),
@@ -62,7 +60,7 @@ export const accounts = pgTable(
 
 export const sessions = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
-  userId: bigint("userId", { mode: "number" })
+  userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
@@ -72,7 +70,7 @@ export const verificationNumberSessions = pgTable(
   "verificationNumberSessions",
   {
     verificationNumber: text("verificationNumber").notNull(),
-    userId: bigint("userId", { mode: "number" })
+    userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -105,7 +103,7 @@ export const Authenticator = pgTable(
       .$defaultFn(() => crypto.randomUUID())
       .unique(),
     credentialID: text("credentialId").notNull(),
-    userId: bigint("userId", { mode: "number" })
+    userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
     providerAccountId: text("providerAccountId").notNull(),
