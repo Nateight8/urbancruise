@@ -29,6 +29,20 @@
       "when": 1745169527616,
       "tag": "0003_productive_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1745183347750,
+      "tag": "0004_left_richard_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1745183459960,
+      "tag": "0005_plain_wolf_cub",
+      "breakpoints": true
     }
   ]
 }
