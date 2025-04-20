@@ -8,35 +8,37 @@ import {
   boolean,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { AdapterAccount } from "next-auth/adapters";
+// import type { AdapterAccount } from "@auth/core/adapters";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { AdapterAccount } from "@auth/express/adapters";
 
 const connectionString = process.env.DATABASE_URL!;
 const pool = postgres(connectionString, { max: 1 });
 export const db = drizzle(pool);
 
 export const users = pgTable("user", {
-  id: uuid("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID())
-    .unique(),
+  id: text("id").primaryKey(),
   name: text("name"),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   location: text("location"),
   address: text("address"),
-  phoneVerified: boolean("phoneVerified").default(false),
-  onboardingCompleted: boolean("onboardingCompleted").default(false),
+  phoneVerified: boolean("phoneVerified"),
+  onboardingCompleted: boolean("onboardingCompleted"),
   banner: text("banner"),
   username: text("username").unique(),
+  avatar: text("avatar"),
+  createdAt: timestamp("createdAt", { mode: "date" }).defaultNow(),
+  updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow(),
+  conversationParticipationId: text("conversationParticipationId").unique(),
 });
 
 export const accounts = pgTable(
   "account",
   {
-    userId: uuid("userId")
+    userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     type: text("type").$type<AdapterAccount["type"]>().notNull(),
@@ -58,8 +60,8 @@ export const accounts = pgTable(
 );
 
 export const sessions = pgTable("session", {
-  sessionToken: uuid("sessionToken").primaryKey(),
-  userId: uuid("userId")
+  sessionToken: text("sessionToken").notNull().primaryKey(),
+  userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { mode: "date" }).notNull(),
@@ -69,7 +71,7 @@ export const verificationNumberSessions = pgTable(
   "verificationNumberSessions",
   {
     verificationNumber: text("verificationNumber").notNull(),
-    userId: uuid("userId")
+    userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
@@ -93,18 +95,13 @@ export const verificationTokens = pgTable(
   })
 );
 
-export const Authenticator = pgTable(
+export const authenticators = pgTable(
   "authenticator",
   {
-    id: uuid("id")
+    credentialID: text("credentialID").notNull().unique(),
+    userId: text("userId")
       .notNull()
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID())
-      .unique(),
-    credentialID: text("credentialId").notNull(),
-    userId: uuid("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     providerAccountId: text("providerAccountId").notNull(),
     credentialPublicKey: text("credentialPublicKey").notNull(),
     counter: integer("counter").notNull(),
@@ -113,15 +110,10 @@ export const Authenticator = pgTable(
     transports: text("transports"),
   },
   (authenticator) => ({
-    userIdIdx: uniqueIndex("Authenticator_credentialID_key").on(
-      authenticator.credentialID
-    ),
+    compoundKey: primaryKey({
+      columns: [authenticator.userId, authenticator.credentialID],
+    }),
   })
 );
-
-/*
-Der Käufer klickt den 'Kaufen'-Button, es wird ein Eintrag gemacht und der Verkäufer erhält in seinem Posteingang eine Nachricht dafür...
-Es gibt eine Seite für Konversation, auf button click eröffnet man eine Konversation die hat erstmal diese Felder: Käufer, Verkäufer, Produkt, Status
-*/
 
 export type User = typeof users.$inferSelect;

@@ -22,6 +22,7 @@ export const userTypeDefs = gql`
     avatar: String
     createdAt: String
     updatedAt: String
+    conversationParticipationId: String
   }
 
   type GetLoggedInUserReturn {
@@ -29,30 +30,13 @@ export const userTypeDefs = gql`
     user: User
   }
 
+  type GetAllUsersResponse {
+    status: Int
+    users: [User!]!
+  }
+
   type LoggedInUserResponse {
     user: User
-  }
-
-  type GetAllUsersResponse {
-    users: [UserWithLoggedInId!]!
-  }
-
-  type UserWithLoggedInId {
-    id: ID!
-    name: String
-    email: String!
-    emailVerified: String
-    image: String
-    location: String
-    address: String
-    phoneVerified: Boolean
-    onboardingCompleted: Boolean
-    banner: String
-    username: String
-    avatar: String
-    createdAt: String
-    updatedAt: String
-    loggedInUserId: ID!
   }
 
   type Query {
@@ -70,7 +54,6 @@ export const userTypeDefs = gql`
       address: String
       phoneVerified: Boolean
       onboardingCompleted: Boolean
-
       banner: String
     ): UpdateUserResponse
 
@@ -88,9 +71,6 @@ export interface UserProfileInput {
   address: string | null;
   phoneVerified: boolean | null;
   onboardingCompleted: boolean | null;
-  shopname: string | null;
-  shoptextfont: string | null;
-  shoptextcolor: string | null;
   banner: string | null;
   username: string | null;
 }

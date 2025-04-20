@@ -1,6 +1,6 @@
 {
-  "id": "c18134a1-f7d9-4a7b-b273-8c0fa6f88d67",
-  "prevId": "d3c38b95-1a53-4e6e-9a2c-a54ef142f71b",
+  "id": "0ee189da-821d-43e5-8aa2-48a3527745b9",
+  "prevId": "b2f102c6-efae-4a64-b54a-160eef205f29",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -330,6 +330,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "conversationParticipationId": {
+          "name": "conversationParticipationId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -348,6 +354,13 @@
           "nullsNotDistinct": false,
           "columns": [
             "username"
+          ]
+        },
+        "user_conversationParticipationId_unique": {
+          "name": "user_conversationParticipationId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "conversationParticipationId"
           ]
         }
       },
