@@ -40,39 +40,19 @@ const userResolvers = {
     },
 
     getAllUsers: async (_: any, __: any, { session, db }: GraphqlContext) => {
-      if (!session?.user?.id) {
-        throw new GraphQLError("Not authenticated", {
-          extensions: {
-            code: "UNAUTHENTICATED",
-          },
-        });
-      }
-
       try {
-        const loggedInUser = await db.query.users.findFirst({
-          where: eq(users.id, session.user.id),
-        });
-
-        if (!loggedInUser) {
-          throw new GraphQLError("User not found", {
-            extensions: {
-              code: "NOT_FOUND",
-            },
-          });
-        }
-
+        // Create a query that conditionally excludes the logged-in user if a session exists
         const allUsers = await db.query.users.findMany({
-          where: ne(users.id, loggedInUser.id),
+          where: session?.user?.id ? ne(users.id, session.user.id) : undefined,
         });
 
-        const usersList = allUsers.map((user) => ({
-          ...user,
-          loggedInUserId: loggedInUser.id,
-        }));
-
+        // Return the data in the correct format
         return {
           status: 200,
-          users: usersList,
+          users: allUsers.map((user) => ({
+            ...user,
+            loggedInUserId: session?.user?.id || null,
+          })),
         };
       } catch (error) {
         console.error("Error in getAllUsers resolver:", error);
