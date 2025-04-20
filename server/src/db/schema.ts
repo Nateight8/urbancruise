@@ -1,4 +1,3 @@
-import { genId } from "@/lib/utils.js";
 import {
   timestamp,
   pgTable,
@@ -27,12 +26,9 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   location: text("location"),
-  adress: text("adress"),
+  address: text("address"),
   phoneVerified: boolean("phoneVerified").default(false),
   onboardingCompleted: boolean("onboardingCompleted").default(false),
-  shopname: text("shopname"),
-  shoptextfont: text("shoptextfont"),
-  shoptextcolor: text("shoptextcolor"),
   banner: text("banner"),
   username: text("username").unique(),
 });
@@ -103,7 +99,7 @@ export const Authenticator = pgTable(
     id: uuid("id")
       .notNull()
       .primaryKey()
-      .$defaultFn(() => genId("ath"))
+      .$defaultFn(() => crypto.randomUUID())
       .unique(),
     credentialID: text("credentialId").notNull(),
     userId: uuid("userId")

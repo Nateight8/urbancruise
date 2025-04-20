@@ -1,6 +1,7 @@
 "use client";
 import AuthenticationScreen from "@/components/auth/authentication-v2";
 import { UsernameForm } from "@/components/auth/username-form";
+import Feeds from "@/components/feed/feeds";
 // import Feeds from "@/components/feed/feeds";
 import userOperations from "@/graphql/operations/user-operations";
 import { useQuery } from "@apollo/client";
@@ -27,7 +28,7 @@ export default function Home() {
 
   return (
     <div className="h-screen w-full flex items-center justify-center">
-      {/* <Feeds /> */}
+      <Feeds />
     </div>
   );
 }
