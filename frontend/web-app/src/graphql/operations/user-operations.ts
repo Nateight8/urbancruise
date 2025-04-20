@@ -15,6 +15,20 @@ const userOperations = {
         }
       }
     `,
+
+    getAllUsers: gql`
+      query Users {
+        getAllUsers {
+          users {
+            id
+            name
+            username
+            loggedInUserId
+          }
+        }
+      }
+    `,
+
     checkUsernameAvailability: gql`
       query CheckUsernameAvailability($username: String!) {
         checkUsernameAvailability(username: $username)
@@ -59,6 +73,19 @@ interface UpdateUsernameResponse {
       onboardingCompleted: boolean;
     } | null;
   };
+}
+
+export interface GetAllUsersResponse {
+  getAllUsers: {
+    users: User[];
+  };
+}
+
+export interface User {
+  id: string;
+  name: string | null;
+  username: string | null;
+  loggedInUserId: string;
 }
 
 export type { GetLoggedInUserResponse, UpdateUsernameResponse };
