@@ -1,61 +1,33 @@
 "use client";
-
-import { useQuery } from "@apollo/client";
-import userOperations from "@/graphql/operations/user-operations";
-import Authentication from "@/components/auth/authentication";
-// import { UsernameForm } from "@/components/auth/username-form";
-// import { useState, useEffect } from "react";
-import LoadingScreen from "@/components/ui/loading-screen";
-import { useEffect, useState } from "react";
+import AuthenticationScreen from "@/components/auth/authentication-v2";
 import { UsernameForm } from "@/components/auth/username-form";
+import Feeds from "@/components/feed/feeds";
+import userOperations from "@/graphql/operations/user-operations";
+import { useQuery } from "@apollo/client";
 
 export default function Home() {
-  const [isClientSide, setIsClientSide] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Only run query after component is mounted on client
-  const { data, loading, refetch } = useQuery(
-    userOperations.Querries.getLoggedInUser,
-    {
-      skip: !isClientSide, // Skip the query on server-side
-    }
+  const { data: loggedInUser } = useQuery(
+    userOperations.Querries.getLoggedInUser
   );
 
-  const user = data?.getLoggedInUser?.user;
-
-  // Handle client-side initialization
-  useEffect(() => {
-    setIsClientSide(true);
-  }, []);
-
-  // Only set loading to false after initial load completes and we're confident about auth state
-  useEffect(() => {
-    if (isClientSide && !loading) {
-      // Add a small delay to ensure UI stability
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 300);
-
-      return () => clearTimeout(timer);
-    }
-  }, [loading, isClientSide]);
-
-  // Keep showing loading screen until we're confident about auth state
-  if (isLoading) {
-    return <LoadingScreen />;
+  // Check if we have any data at all
+  if (!loggedInUser?.getLoggedInUser) {
+    return <AuthenticationScreen />;
   }
 
-  console.log(user);
-
-  // Once loading is complete, render the appropriate component based on auth state
-  if (!user) {
-    return <Authentication />;
+  // Check if we have a user object
+  if (!loggedInUser.getLoggedInUser.user) {
+    return <UsernameForm />;
   }
 
-  if (user.username === null) {
-    return <UsernameForm onSuccess={() => refetch()} />;
+  // Check if username is null or undefined
+  if (!loggedInUser.getLoggedInUser.user.username) {
+    return <UsernameForm />;
   }
 
-  // User is authenticated and has completed onboarding
-  return <>welcome {user.username}</>;
+  return (
+    <div className="h-screen w-full flex items-center justify-center">
+      <Feeds />
+    </div>
+  );
 }
