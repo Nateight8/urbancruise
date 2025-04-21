@@ -1,2 +1,0 @@
-ALTER TABLE "user" ADD COLUMN "conversationParticipationId" text NOT NULL;--> statement-breakpoint
-ALTER TABLE "user" ADD CONSTRAINT "user_conversationParticipationId_unique" UNIQUE("conversationParticipationId");

@@ -7,6 +7,9 @@ export const userTypeDefs = gql`
     user: User
   }
 
+  """
+  User type with minimal fields needed for conversation creation
+  """
   type User {
     id: ID!
     name: String

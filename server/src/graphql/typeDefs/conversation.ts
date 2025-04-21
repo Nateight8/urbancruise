@@ -2,22 +2,12 @@ import { gql } from "graphql-tag";
 
 export const conversationTypeDefs = gql`
   """
-  User type with minimal fields needed for conversation creation
-  """
-  type User {
-    id: ID!
-    username: String!
-    avatarUrl: String
-  }
-
-  """
   Conversation type with essential fields
   """
   type Conversation {
     id: ID!
     participants: [User!]!
     isGroup: Boolean!
-    isDraft: Boolean!
     createdAt: DateTime!
     lastMessageAt: DateTime
   }
@@ -31,28 +21,15 @@ export const conversationTypeDefs = gql`
     sender: User!
     conversation: Conversation!
     createdAt: DateTime!
+    updatedAt: DateTime!
     isEdited: Boolean!
+    isDeleted: Boolean!
   }
 
   """
   Custom scalar for DateTime
   """
   scalar DateTime
-
-  """
-  Input type for initiating a conversation
-  """
-  input InitiateConversationInput {
-    participantIds: [ID!]!
-  }
-
-  """
-  Input type for sending the first message
-  """
-  input SendFirstMessageInput {
-    conversationId: ID!
-    content: String!
-  }
 
   """
   Response for conversation creation
@@ -70,6 +47,7 @@ export const conversationTypeDefs = gql`
     message: Message
     success: Boolean!
     conversationUpdated: Boolean!
+    conversation: Conversation
   }
 
   type Query {
@@ -86,16 +64,14 @@ export const conversationTypeDefs = gql`
 
   type Mutation {
     """
-    Initiate a conversation without sending a message (creates a draft)
+    Send a message to another user.
+    If the conversation doesn't exist yet, it will be created automatically.
+    The conversation ID is derived from the sorted conversationParticipationIds.
     """
-    initiateConversation(
-      input: InitiateConversationInput!
-    ): ConversationResponse!
-
-    """
-    Send first message in a conversation (converts from draft to active)
-    """
-    sendFirstMessage(input: SendFirstMessageInput!): MessageResponse!
+    sendMessage(
+      conversationParticipationIds: [ID!]!
+      content: String!
+    ): MessageResponse!
   }
 
   type Subscription {
@@ -103,5 +79,10 @@ export const conversationTypeDefs = gql`
     Subscribe to conversation updates
     """
     conversationUpdated(id: ID!): Conversation!
+
+    """
+    Subscribe to new messages in a conversation
+    """
+    newMessage(conversationId: ID!): Message!
   }
 `;

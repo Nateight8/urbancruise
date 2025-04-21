@@ -1,9 +1,9 @@
-import { User, users } from "../../db/schema.js";
+import { User, users } from "@/db/schema/auth";
 import GraphqlContext, { UserInput } from "@/types/types.utils.js";
 import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
-
+import * as schema from "@/db/schema/auth.js";
 import { Snowflake } from "@theinternetfolks/snowflake";
 
 const userResolvers = {
@@ -73,7 +73,7 @@ const userResolvers = {
       const lowercaseUsername = username.toLowerCase();
 
       const existingUser = await db.query.users.findFirst({
-        where: (users, { sql }) =>
+        where: (users: typeof schema.users) =>
           sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
 
@@ -183,7 +183,7 @@ const userResolvers = {
       try {
         // Check if username is already taken using case-insensitive comparison
         const existingUser = await db.query.users.findFirst({
-          where: (u, { sql }) =>
+          where: (u: typeof schema.users) =>
             sql`LOWER(${u.username}) = ${lowercaseUsername}`,
         });
 
@@ -197,7 +197,8 @@ const userResolvers = {
 
         // Get the user's current record
         const currentUser = await db.query.users.findFirst({
-          where: (u, { eq }) => eq(u.email, session.user!.email as string),
+          where: (u: typeof schema.users) =>
+            eq(u.email, session.user!.email as string),
         });
 
         if (!currentUser) {
@@ -214,7 +215,7 @@ const userResolvers = {
           .set({
             username: lowercaseUsername,
             onboardingCompleted: true,
-            conversationParticipationId: Snowflake.generate(),
+            participantId: Snowflake.generate(),
           })
           .where(eq(users.email, session.user!.email as string))
           .returning();
@@ -241,5 +242,4 @@ const userResolvers = {
     },
   },
 };
-
 export default userResolvers;

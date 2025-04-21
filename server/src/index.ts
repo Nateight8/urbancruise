@@ -10,7 +10,6 @@ import { ExpressAuth, getSession } from "@auth/express";
 import { authConfig } from "@/config/auth.config.js";
 import { currentSession } from "@/middleware/auth.middleware.js";
 import { db } from "@/db/index.js";
-import instagramRouter from "@/webhooks/instagram.js";
 
 interface MyContext {
   token?: String;
@@ -31,12 +30,6 @@ app.use(currentSession);
 // IMPORTANT: It is highly encouraged set up rate limiting on this route
 app.use("/api/auth/*", ExpressAuth(authConfig));
 
-// Add webhook endpoint
-// app.post("/webhooks/instagram", instagramWebhookRouter);
-app.use("/webhooks/instagram", instagramRouter);
-
-console.log("Instagram Webhook Route Not Mounted");
-
 const server = new ApolloServer<MyContext>({
   typeDefs,
   resolvers,
@@ -44,25 +37,26 @@ const server = new ApolloServer<MyContext>({
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
 
-await server.start();
+async function startServer() {
+  await server.start();
 
-app.use(
-  "/graphql",
-  cors<cors.CorsRequest>(corsOptions),
-  express.json(),
-  expressMiddleware(server, {
-    context: async ({ req, res }) => {
-      const session = res.locals.session || null; // Ensure fallback
+  app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(corsOptions),
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req, res }) => {
+        const session = res.locals.session || null;
+        return { db, session };
+      },
+    })
+  );
 
-      // console.log("Session:", session);
+  await new Promise<void>((resolve) =>
+    httpServer.listen({ port: 4000 }, resolve)
+  );
 
-      return { db, session };
-    },
-  })
-);
+  console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+}
 
-await new Promise<void>((resolve) =>
-  httpServer.listen({ port: 4000 }, resolve)
-);
-
-console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+startServer();

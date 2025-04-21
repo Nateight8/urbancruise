@@ -7,6 +7,7 @@ import {
   uniqueIndex,
   boolean,
   uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 // import type { AdapterAccount } from "@auth/core/adapters";
 import postgres from "postgres";
@@ -28,11 +29,11 @@ export const users = pgTable("user", {
   phoneVerified: boolean("phoneVerified"),
   onboardingCompleted: boolean("onboardingCompleted"),
   banner: text("banner"),
-  username: text("username").unique(),
+  username: text("username"),
   avatar: text("avatar"),
-  createdAt: timestamp("createdAt", { mode: "date" }).defaultNow(),
-  updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow(),
-  conversationParticipationId: text("conversationParticipationId").unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  participantId: varchar("participant_id", { length: 64 }),
 });
 
 export const accounts = pgTable(
