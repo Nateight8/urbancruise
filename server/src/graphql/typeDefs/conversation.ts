@@ -18,12 +18,7 @@ export const conversationTypeDefs = gql`
   type Message {
     id: ID!
     content: String!
-    sender: User!
-    conversation: Conversation!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    isEdited: Boolean!
-    isDeleted: Boolean!
+    createdAt: DateTime
   }
 
   """
@@ -46,20 +41,32 @@ export const conversationTypeDefs = gql`
   type MessageResponse {
     message: Message
     success: Boolean!
-    conversationUpdated: Boolean!
-    conversation: Conversation
+  }
+
+  """
+  User with conversation context
+  """
+  type ConversationParticipant {
+    conversationId: ID!
+    lastMessageAt: DateTime
+    user: User
+    lastMessage: Message
+  }
+
+  """
+  User type with minimal fields
+  """
+  type User {
+    id: ID!
+    username: String
   }
 
   type Query {
     """
-    Get a conversation by ID
+    Get all users the current user has conversations with,
+    along with conversation metadata
     """
-    conversation(id: ID!): Conversation
-
-    """
-    Get all conversations for the current user
-    """
-    myConversations: [Conversation!]!
+    conversationParticipants: [ConversationParticipant]
   }
 
   type Mutation {
@@ -68,10 +75,7 @@ export const conversationTypeDefs = gql`
     If the conversation doesn't exist yet, it will be created automatically.
     The conversation ID is derived from the sorted conversationParticipationIds.
     """
-    sendMessage(
-      conversationParticipationIds: [ID!]!
-      content: String!
-    ): MessageResponse!
+    sendMessage(participantIds: [ID!]!, content: String!): MessageResponse!
   }
 
   type Subscription {
