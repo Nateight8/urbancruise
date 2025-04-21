@@ -29,7 +29,7 @@ export default function User({ user }: { user: User }) {
           disabled={!loggedInUser}
           onClick={() => {
             router.push(
-              `/messages/${loggedInUser?.conversationParticipationId}-${user.conversationParticipationId}`
+              `/messages/${loggedInUser?.participantId}-${user.participantId}`
             );
           }}
           variant="outline"

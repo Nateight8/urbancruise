@@ -9,6 +9,8 @@ export default function Feeds() {
     userOperations.Querries.getAllUsers
   );
 
+  console.log("data", data);
+
   return (
     <div>
       {data?.getAllUsers.users.map((user) => (

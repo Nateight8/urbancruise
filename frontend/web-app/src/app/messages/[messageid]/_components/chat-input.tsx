@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
+import conversationOperations from "@/graphql/operations/conversation-operations";
+import { useMutation } from "@apollo/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconMoodSmile, IconPhoto, IconSend2 } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
@@ -13,7 +15,7 @@ const FormSchema = z.object({
   }),
 });
 
-export default function ChatInput() {
+export default function ChatInput({ messageId }: { messageId: string }) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -21,8 +23,22 @@ export default function ChatInput() {
     },
   });
 
+  // Split the messageId into participantIds
+  const participantIds = messageId.split("-");
+
+  const [sendMessage, { loading }] = useMutation(
+    conversationOperations.Mutations.sendMessage
+  );
+
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
     console.log(values);
+    console.log("messageId", messageId);
+    sendMessage({
+      variables: {
+        participantIds,
+        content: values.message,
+      },
+    });
   };
 
   return (
