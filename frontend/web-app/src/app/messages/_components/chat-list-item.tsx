@@ -17,7 +17,7 @@ export default function ChatListItem({
 }: {
   chatParticipant: ConversationParticipant;
 }) {
-  const { user, lastMessage, lastMessageAt, conversationId } = chatParticipant;
+  const { user, lastMessage, conversationId } = chatParticipant;
 
   console.log("CHAT PARTICIPANT from chat list item", chatParticipant);
 

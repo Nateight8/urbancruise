@@ -26,8 +26,8 @@ export function UserAvatar() {
 
   return (
     <Avatar className="size-12">
-      {user?.avatar ? (
-        <AvatarImage src={user.avatar} alt={user.username || "User avatar"} />
+      {user?.image ? (
+        <AvatarImage src={user.image} alt={user.username || "User avatar"} />
       ) : (
         <AvatarFallback>
           <IconUserFilled />

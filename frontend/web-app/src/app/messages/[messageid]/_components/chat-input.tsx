@@ -45,14 +45,12 @@ export default function ChatInput({ messageId }: { messageId: string }) {
         form.reset();
       },
       update: (cache, { data }) => {
-        console.log("Update function called", { data });
         if (data?.sendMessage?.success) {
           // Read the existing conversation data
           const existingData = cache.readQuery<GetConversationResponse>({
             query: conversationOperations.Querries.getConversation,
             variables: { conversationId: messageId },
           });
-          console.log("Existing data", existingData);
 
           if (existingData?.conversation) {
             // Create a new message object
@@ -68,7 +66,6 @@ export default function ChatInput({ messageId }: { messageId: string }) {
               },
               senderId: cachedUser?.id || "",
             };
-            console.log("New message", newMessage);
 
             // Update the cache with the new message
             cache.writeQuery<GetConversationResponse>({

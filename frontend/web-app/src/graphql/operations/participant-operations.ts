@@ -7,15 +7,15 @@ const participantOperations = {
         conversationParticipants {
           conversationId
           user {
-            id
             name
             username
+            id
             image
           }
           lastMessage {
             content
+            id
           }
-          lastMessageAt
         }
       }
     `,
@@ -26,6 +26,10 @@ const participantOperations = {
 
 export interface ConversationParticipant {
   conversationId: string;
+  userId: string;
+  joinedAt: Date;
+  leftAt: Date | null;
+  hasSeenLatestMessage: boolean;
   user: {
     id: string;
     name: string | null;
@@ -34,8 +38,8 @@ export interface ConversationParticipant {
   };
   lastMessage: {
     content: string;
+    id: string;
   } | null;
-  lastMessageAt: Date | null;
 }
 
 export interface MyParticipantsResponse {

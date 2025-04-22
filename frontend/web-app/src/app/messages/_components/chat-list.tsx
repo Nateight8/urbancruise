@@ -7,6 +7,7 @@ import participantOperations, {
   MyParticipantsResponse,
 } from "@/graphql/operations/participant-operations";
 import { Skeleton } from "@/components/ui/skeleton";
+
 export default function ChatList() {
   const { data: chatLists, loading } = useQuery<MyParticipantsResponse>(
     participantOperations.Querries.myParticipants

@@ -9,7 +9,7 @@ const userOperations = {
             id
             username
             email
-            avatar
+            image
             onboardingCompleted
             participantId
           }
