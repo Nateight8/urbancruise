@@ -56,18 +56,21 @@ const conversationOperations = {
 };
 
 export interface Message {
+  __typename?: "Message";
   content: string;
   conversationId: string;
   id: string;
   isDeleted: boolean;
   isEdited: boolean;
   sender: {
+    __typename?: "User";
     username: string;
     id: string;
   };
   senderId: string;
 }
 export interface Conversation {
+  __typename?: "Conversation";
   id: string;
   createdAt: Date;
   isDraft: boolean;
@@ -93,6 +96,7 @@ export interface ConversationParticipant {
 }
 
 export interface GetConversationResponse {
+  __typename?: "Query";
   conversation: Conversation;
 }
 

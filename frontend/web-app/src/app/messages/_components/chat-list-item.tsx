@@ -19,8 +19,6 @@ export default function ChatListItem({
 }) {
   const { user, lastMessage, conversationId } = chatParticipant;
 
-  console.log("CHAT PARTICIPANT from chat list item", chatParticipant);
-
   return (
     <Link
       href={`/messages/${conversationId}`}

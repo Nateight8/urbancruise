@@ -33,8 +33,6 @@ export default function ChatList() {
       </aside>
     );
 
-  console.log("CHAT LISTS", chatLists);
-
   return (
     <aside className="w-80 h-full border-r py-2 pl-2">
       <ScrollArea className="h-full">

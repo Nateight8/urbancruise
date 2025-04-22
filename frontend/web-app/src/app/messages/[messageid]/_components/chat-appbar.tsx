@@ -1,7 +1,7 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconUser } from "@tabler/icons-react";
 import { ConversationParticipant } from "@/graphql/operations/conversation-operations";
 import { useCachedUser } from "@/hooks/use-cached-user";
 
@@ -15,8 +15,6 @@ export default function ChatAppBar({
   const otherParticipant = participants.find(
     (participant) => participant.user.username !== cachedUser?.username
   );
-
-  console.log("Other participant", otherParticipant);
 
   return (
     <header className="flex-shrink-0  h-16 flex  items-center">
@@ -34,7 +32,9 @@ export default function ChatAppBar({
             <AvatarImage
               src={otherParticipant?.user.image ?? "/images/pfp/pfp.jpeg"}
             />
-            <AvatarFallback>CN</AvatarFallback>
+            <AvatarFallback>
+              <IconUser size={16} aria-hidden="true" />
+            </AvatarFallback>
           </Avatar>
           <p className="text-base font-semibold capitalize">
             {otherParticipant?.user.username}

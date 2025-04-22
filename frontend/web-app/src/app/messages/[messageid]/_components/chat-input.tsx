@@ -55,24 +55,34 @@ export default function ChatInput({ messageId }: { messageId: string }) {
           if (existingData?.conversation && cachedUser) {
             // Create a new message object with fallback values if needed
             const newMessage: Message = {
+              __typename: "Message",
               id: `temp-${Date.now()}`,
               content: form.getValues().message,
               conversationId: messageId,
               isDeleted: false,
               isEdited: false,
               sender: {
+                __typename: "User",
                 id: cachedUser.id,
                 username: cachedUser.username,
               },
               senderId: cachedUser.id,
             };
 
+            console.log(
+              "Optimistic Message:",
+              JSON.stringify(newMessage, null, 2)
+            );
+            console.log("Sender in optimistic update:", newMessage.sender);
+
             // Update the cache with the new message
             cache.writeQuery<GetConversationResponse>({
               query: conversationOperations.Querries.getConversation,
               variables: { conversationId: messageId },
               data: {
+                __typename: "Query",
                 conversation: {
+                  __typename: "Conversation",
                   ...existingData.conversation,
                   messages: [...existingData.conversation.messages, newMessage],
                 },
@@ -90,7 +100,6 @@ export default function ChatInput({ messageId }: { messageId: string }) {
 
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
     const messageContent = values.message;
-    if (!messageContent.trim()) return; // Don't send empty messages
 
     sendMessage({
       variables: {
