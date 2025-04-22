@@ -55,13 +55,7 @@ const userOperations = {
 
 interface GetLoggedInUserResponse {
   getLoggedInUser: {
-    user: {
-      id: string;
-      username: string;
-      email: string;
-      avatar: string;
-      participantId: string;
-    };
+    user: User;
   };
 }
 
@@ -85,9 +79,11 @@ export interface GetAllUsersResponse {
 
 export interface User {
   id: string;
-  name: string | null;
-  username: string | null;
+  name: string;
+  username: string;
   participantId: string;
+  image: string;
+  onboardingCompleted: boolean;
 }
 
 export type { GetLoggedInUserResponse, UpdateUsernameResponse };

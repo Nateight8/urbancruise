@@ -39,10 +39,7 @@ export default function ChatList() {
     <aside className="w-80 h-full border-r py-2 pl-2">
       <ScrollArea className="h-full">
         {chatLists?.conversationParticipants.map((chatlist) => (
-          <ChatListItem
-            key={chatlist.conversationId}
-            chatParticipant={chatlist}
-          />
+          <ChatListItem key={chatlist.userId} chatParticipant={chatlist} />
         ))}
       </ScrollArea>
     </aside>

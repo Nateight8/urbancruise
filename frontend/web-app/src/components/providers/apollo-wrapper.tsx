@@ -1,7 +1,10 @@
 "use client";
 // ^ this file needs the "use client" pragma
 
-import { HttpLink } from "@apollo/client";
+import { HttpLink, split, ApolloLink } from "@apollo/client";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { createClient } from "graphql-ws";
 import {
   ApolloNextAppProvider,
   ApolloClient,
@@ -23,11 +26,32 @@ function makeClient() {
     // const { data } = useSuspenseQuery(MY_QUERY, { context: { fetchOptions: { cache: "force-cache" }}});
   });
 
+  const wsLink = new GraphQLWsLink(
+    createClient({
+      url: "ws://localhost:4000/graphql",
+      connectionParams: {
+        credentials: "include",
+      },
+    })
+  );
+
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      );
+    },
+    wsLink as unknown as ApolloLink,
+    httpLink
+  );
+
   // use the `ApolloClient` from "@apollo/experimental-nextjs-app-support"
   return new ApolloClient({
     // use the `InMemoryCache` from "@apollo/experimental-nextjs-app-support"
     cache: new InMemoryCache(),
-    link: httpLink,
+    link: splitLink,
     defaultOptions: {
       // Use caching strategy that works better with SSR and hydration
       watchQuery: {

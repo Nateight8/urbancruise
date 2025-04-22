@@ -43,6 +43,16 @@ const conversationOperations = {
       }
     `,
   },
+
+  Subscriptions: {
+    messageSent: gql`
+      subscription Subscription($conversationId: ID!) {
+        messageAdded(conversationId: $conversationId) {
+          content
+        }
+      }
+    `,
+  },
 };
 
 export interface Message {

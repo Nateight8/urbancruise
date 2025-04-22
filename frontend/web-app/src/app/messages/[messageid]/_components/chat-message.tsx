@@ -11,7 +11,7 @@ export default function ChatMessage({ message }: { message: Message }) {
           message.senderId === cachedUser?.id ? "text-red-500" : "text-blue-400"
         }`}
       >
-        {message.senderId === cachedUser?.id ? "ME" : message.sender.username}
+        {message.senderId === cachedUser?.id ? "ME" : message.sender?.username}
       </p>
 
       <div className="hover:bg-muted/50 w-fit rounded-lg p-2">

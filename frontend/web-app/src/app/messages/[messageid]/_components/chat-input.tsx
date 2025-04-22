@@ -52,8 +52,8 @@ export default function ChatInput({ messageId }: { messageId: string }) {
             variables: { conversationId: messageId },
           });
 
-          if (existingData?.conversation) {
-            // Create a new message object
+          if (existingData?.conversation && cachedUser) {
+            // Create a new message object with fallback values if needed
             const newMessage: Message = {
               id: `temp-${Date.now()}`,
               content: form.getValues().message,
@@ -61,10 +61,10 @@ export default function ChatInput({ messageId }: { messageId: string }) {
               isDeleted: false,
               isEdited: false,
               sender: {
-                id: cachedUser?.id || "",
-                username: cachedUser?.username || "",
+                id: cachedUser.id,
+                username: cachedUser.username,
               },
-              senderId: cachedUser?.id || "",
+              senderId: cachedUser.id,
             };
 
             // Update the cache with the new message
@@ -83,6 +83,10 @@ export default function ChatInput({ messageId }: { messageId: string }) {
       },
     }
   );
+
+  if (!cachedUser) {
+    return null;
+  }
 
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
     const messageContent = values.message;
@@ -111,7 +115,7 @@ export default function ChatInput({ messageId }: { messageId: string }) {
                       <FormControl>
                         <textarea
                           disabled={loading}
-                          className="flex-1  max-h-29.5 min-h-0 resize-none py-1.75 w-full bg-transparent px-3 text-[15px] leading-relaxed text-foreground field-sizing-content placeholder:text-muted-foreground/70 focus-visible:outline-none "
+                          className="flex-1 max-h-29.5 min-h-0 resize-none py-1.75 w-full bg-transparent px-3 text-[15px] leading-relaxed text-foreground field-sizing-content placeholder:text-muted-foreground/70 focus-visible:outline-none "
                           placeholder="Send a chat..."
                           aria-label="send a chat"
                           onKeyDown={(e) => {
