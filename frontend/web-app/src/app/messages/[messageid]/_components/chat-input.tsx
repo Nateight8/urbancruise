@@ -2,12 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
-import conversationOperations from "@/graphql/operations/conversation-operations";
+import conversationOperations, {
+  GetConversationResponse,
+  Message,
+} from "@/graphql/operations/conversation-operations";
 import { useMutation } from "@apollo/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconMoodSmile, IconPhoto, IconSend2 } from "@tabler/icons-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useCachedUser } from "@/hooks/use-cached-user";
 
 const FormSchema = z.object({
   message: z.string().min(1, {
@@ -23,20 +27,74 @@ export default function ChatInput({ messageId }: { messageId: string }) {
     },
   });
 
+  const cachedUser = useCachedUser();
+
   // Split the messageId into participantIds
   const participantIds = messageId.split("-");
 
   const [sendMessage, { loading }] = useMutation(
-    conversationOperations.Mutations.sendMessage
+    conversationOperations.Mutations.sendMessage,
+    {
+      optimisticResponse: {
+        sendMessage: {
+          __typename: "SendMessageResponse",
+          success: true,
+        },
+      },
+      onCompleted: () => {
+        form.reset();
+      },
+      update: (cache, { data }) => {
+        console.log("Update function called", { data });
+        if (data?.sendMessage?.success) {
+          // Read the existing conversation data
+          const existingData = cache.readQuery<GetConversationResponse>({
+            query: conversationOperations.Querries.getConversation,
+            variables: { conversationId: messageId },
+          });
+          console.log("Existing data", existingData);
+
+          if (existingData?.conversation) {
+            // Create a new message object
+            const newMessage: Message = {
+              id: `temp-${Date.now()}`,
+              content: form.getValues().message,
+              conversationId: messageId,
+              isDeleted: false,
+              isEdited: false,
+              sender: {
+                id: cachedUser?.id || "",
+                username: cachedUser?.username || "",
+              },
+              senderId: cachedUser?.id || "",
+            };
+            console.log("New message", newMessage);
+
+            // Update the cache with the new message
+            cache.writeQuery<GetConversationResponse>({
+              query: conversationOperations.Querries.getConversation,
+              variables: { conversationId: messageId },
+              data: {
+                conversation: {
+                  ...existingData.conversation,
+                  messages: [...existingData.conversation.messages, newMessage],
+                },
+              },
+            });
+          }
+        }
+      },
+    }
   );
 
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
-    console.log(values);
-    console.log("messageId", messageId);
+    const messageContent = values.message;
+    if (!messageContent.trim()) return; // Don't send empty messages
+
     sendMessage({
       variables: {
         participantIds,
-        content: values.message,
+        content: messageContent,
       },
     });
   };
@@ -55,6 +113,7 @@ export default function ChatInput({ messageId }: { messageId: string }) {
                     <FormItem className="flex-1">
                       <FormControl>
                         <textarea
+                          disabled={loading}
                           className="flex-1  max-h-29.5 min-h-0 resize-none py-1.75 w-full bg-transparent px-3 text-[15px] leading-relaxed text-foreground field-sizing-content placeholder:text-muted-foreground/70 focus-visible:outline-none "
                           placeholder="Send a chat..."
                           aria-label="send a chat"
@@ -76,10 +135,11 @@ export default function ChatInput({ messageId }: { messageId: string }) {
                   variant="ghost"
                   size="icon"
                   aria-label="Add new item"
+                  type="submit"
+                  disabled={loading}
                 >
                   <IconSend2 size={16} aria-hidden="true" />
                 </Button>
-                {/* Textarea buttons */}
               </div>
             </div>
             <Button
