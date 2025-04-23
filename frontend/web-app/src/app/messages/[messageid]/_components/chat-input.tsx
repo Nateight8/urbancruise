@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import conversationOperations, {
@@ -27,7 +28,17 @@ export default function ChatInput({ messageId }: { messageId: string }) {
     },
   });
 
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const [shouldFocus, setShouldFocus] = useState(false);
   const cachedUser = useCachedUser();
+
+  // Effect to focus the input after sending a message
+  useEffect(() => {
+    if (shouldFocus) {
+      inputRef.current?.focus();
+      setShouldFocus(false);
+    }
+  }, [shouldFocus]);
 
   // Split the messageId into participantIds
   const participantIds = messageId.split("-");
@@ -43,6 +54,7 @@ export default function ChatInput({ messageId }: { messageId: string }) {
       },
       onCompleted: () => {
         form.reset();
+        setShouldFocus(true);
       },
       update: (cache, { data }) => {
         if (data?.sendMessage?.success) {
@@ -123,6 +135,10 @@ export default function ChatInput({ messageId }: { messageId: string }) {
                     <FormItem className="flex-1">
                       <FormControl>
                         <textarea
+                          {...field}
+                          ref={(element) => {
+                            inputRef.current = element;
+                          }}
                           disabled={loading}
                           className="flex-1 max-h-29.5 min-h-0 resize-none py-1.75 w-full bg-transparent px-3 text-[15px] leading-relaxed text-foreground field-sizing-content placeholder:text-muted-foreground/70 focus-visible:outline-none "
                           placeholder="Send a chat..."
@@ -133,7 +149,6 @@ export default function ChatInput({ messageId }: { messageId: string }) {
                               form.handleSubmit(onSubmit)();
                             }
                           }}
-                          {...field}
                         />
                       </FormControl>
                     </FormItem>
