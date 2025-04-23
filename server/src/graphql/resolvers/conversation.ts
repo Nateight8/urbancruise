@@ -1,5 +1,5 @@
 // conversationResolvers.ts
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, isNull, asc } from "drizzle-orm";
 import {
   conversations,
   conversationParticipants,
@@ -9,6 +9,7 @@ import {
 import * as schema from "@/db/schema";
 import GraphqlContext from "@/types/types.utils";
 import { GraphQLError } from "graphql";
+import { withFilter } from "graphql-subscriptions";
 
 interface SendMessageArgs {
   participantIds: string[];
@@ -24,7 +25,66 @@ interface SendMessageResponse {
 }
 
 export const conversationResolvers = {
-  Query: {},
+  Query: {
+    conversation: async (
+      _: any,
+      args: { id: string },
+      context: GraphqlContext
+    ) => {
+      const { db, session } = context;
+      const user = session?.user;
+
+      // Check if user is a participant
+      const participation = await db.query.conversationParticipants.findFirst({
+        where: and(
+          eq(conversationParticipants.userId, user?.id || ""),
+          eq(conversationParticipants.conversationId, args.id),
+          isNull(conversationParticipants.leftAt)
+        ),
+      });
+
+      if (!participation) {
+        throw new Error("Conversation not found or user is not a participant");
+      }
+
+      const conversation = await db.query.conversations.findFirst({
+        where: eq(conversations.id, args.id),
+        with: {
+          messages: {
+            orderBy: (messages) => [asc(messages.createdAt)],
+            with: {
+              sender: {
+                columns: {
+                  id: true,
+                  username: true,
+                  image: true,
+                },
+              },
+            },
+          },
+          participants: {
+            with: {
+              user: {
+                columns: {
+                  id: true,
+                  username: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!conversation) {
+        throw new GraphQLError("Conversation not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      return conversation;
+    },
+  },
   Mutation: {
     sendMessage: async (
       _: any,
@@ -32,7 +92,7 @@ export const conversationResolvers = {
       context: GraphqlContext
     ): Promise<SendMessageResponse> => {
       try {
-        const { db, session } = context;
+        const { db, session, pubsub } = context;
         const user = session?.user;
 
         // Step 1: Auth check
@@ -74,8 +134,7 @@ export const conversationResolvers = {
         let participants;
         try {
           participants = await db.query.users.findMany({
-            where: (users: typeof schema.users) =>
-              sql`${users.participantId} IN ${sortedIds}`,
+            where: (users) => sql`${users.participantId} IN ${sortedIds}`,
           });
         } catch (dbError) {
           console.error("Database error querying participants:", dbError);
@@ -156,31 +215,33 @@ export const conversationResolvers = {
             );
           }
         } else {
-          // Check if current user is already a participant
-          try {
-            const existingParticipant =
-              await db.query.conversationParticipants.findFirst({
-                where: and(
-                  eq(conversationParticipants.conversationId, vibeId),
-                  eq(conversationParticipants.userId, user.id)
-                ),
-              });
-
-            // If not, add them
-            if (!existingParticipant) {
-              await db.insert(conversationParticipants).values({
-                userId: user.id,
-                conversationId: vibeId,
-              });
-            }
-          } catch (dbError) {
-            console.error(
-              "Database error checking/adding participant:",
-              dbError
-            );
-            throw new GraphQLError("Couldn't add you to the convo. Yikes! 😬", {
-              extensions: { code: "DATABASE_ERROR" },
+          // If conversation exists
+          const existingParticipants =
+            await db.query.conversationParticipants.findMany({
+              where: eq(conversationParticipants.conversationId, vibeId),
             });
+
+          const existingParticipantIds = new Set(
+            existingParticipants.map(
+              (p: typeof schema.conversationParticipants.$inferSelect) =>
+                p.userId
+            )
+          );
+
+          const missingParticipants = participants.filter(
+            (p: typeof schema.users.$inferSelect) =>
+              !existingParticipantIds.has(p.id)
+          );
+
+          // Add any missing participants
+          if (missingParticipants.length > 0) {
+            const newEntries = missingParticipants.map(
+              (p: typeof schema.users.$inferSelect) => ({
+                userId: p.id,
+                conversationId: vibeId,
+              })
+            );
+            await db.insert(conversationParticipants).values(newEntries);
           }
         }
 
@@ -239,6 +300,42 @@ export const conversationResolvers = {
           // Non-fatal error, log but continue
         }
 
+        // After successfully creating the message, publish it
+        if (freshMsg) {
+          await pubsub.publish("MESSAGE_ADDED", {
+            messageAdded: freshMsg,
+            conversationId: vibeId,
+          });
+
+          // Get the updated participant information for other participants
+          const otherParticipantIds = participantIds.filter(
+            (id) => id !== user.id
+          );
+
+          for (const participantId of otherParticipantIds) {
+            // Find the participant's user record
+            const participantUser = participants.find(
+              (p: typeof schema.users.$inferSelect) =>
+                p.participantId === participantId
+            );
+
+            if (participantUser) {
+              // Create the participant update payload
+              const participantUpdate = {
+                conversationId: vibeId,
+                user: currentUserRecord,
+                lastMessage: freshMsg,
+                lastMessageAt: new Date(),
+              };
+
+              // Publish the update for this participant
+              await pubsub.publish("CONVERSATION_PARTICIPANT_UPDATED", {
+                conversationParticipantsUpdated: participantUpdate,
+              });
+            }
+          }
+        }
+
         return {
           message: "Message sent successfully, enjoy the convo! 🔥",
           success: true,
@@ -261,6 +358,16 @@ export const conversationResolvers = {
           }
         );
       }
+    },
+  },
+  Subscription: {
+    messageAdded: {
+      subscribe: withFilter(
+        (_, __, { pubsub }) => pubsub.asyncIterableIterator(["MESSAGE_ADDED"]),
+        (payload, variables) => {
+          return payload.conversationId === variables.conversationId;
+        }
+      ),
     },
   },
 };

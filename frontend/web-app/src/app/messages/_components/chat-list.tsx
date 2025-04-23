@@ -2,15 +2,69 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatListItem from "./chat-list-item";
 // import { chatLists } from "./chat-lists";
-import { useQuery } from "@apollo/client";
+import { useQuery, useSubscription } from "@apollo/client";
 import participantOperations, {
   MyParticipantsResponse,
+  ConversationParticipant,
+  ParticipantsUpdatedResponse,
 } from "@/graphql/operations/participant-operations";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
 
 export default function ChatList() {
-  const { data: chatLists, loading } = useQuery<MyParticipantsResponse>(
+  const { data: chatListsData, loading } = useQuery<MyParticipantsResponse>(
     participantOperations.Querries.myParticipants
+  );
+
+  const [chatLists, setChatLists] = useState<ConversationParticipant[]>([]);
+
+  // Initialize chatLists from query data
+  useEffect(() => {
+    if (chatListsData?.conversationParticipants) {
+      setChatLists(chatListsData.conversationParticipants);
+    }
+  }, [chatListsData]);
+
+  // Subscribe to chat list updates
+  useSubscription<ParticipantsUpdatedResponse>(
+    participantOperations.Subscriptions.conversationParticipantsUpdated,
+    {
+      onData: ({ data }) => {
+        if (data.data?.conversationParticipantsUpdated) {
+          const updatedParticipant = data.data.conversationParticipantsUpdated;
+
+          setChatLists((prev) => {
+            // Check if conversation already exists in the list
+            const existingIndex = prev.findIndex(
+              (chat) =>
+                chat.conversationId === updatedParticipant.conversationId
+            );
+
+            if (existingIndex >= 0) {
+              // Update existing conversation
+              const updated = [...prev];
+              updated[existingIndex] = {
+                ...updated[existingIndex],
+                lastMessage: updatedParticipant.lastMessage,
+              };
+
+              // Sort to move this conversation to the top
+              return updated.sort((a, b) => {
+                // Put the updated conversation at the top
+                if (a.conversationId === updatedParticipant.conversationId)
+                  return -1;
+                if (b.conversationId === updatedParticipant.conversationId)
+                  return 1;
+                return 0;
+              });
+            } else {
+              // Add new conversation at the top
+              return [updatedParticipant, ...prev];
+            }
+          });
+        }
+      },
+    }
   );
 
   if (loading)
@@ -36,7 +90,7 @@ export default function ChatList() {
   return (
     <aside className="w-80 h-full border-r py-2 pl-2">
       <ScrollArea className="h-full">
-        {chatLists?.conversationParticipants.map((chatlist) => (
+        {chatLists.map((chatlist) => (
           <ChatListItem
             key={`chat-${chatlist.conversationId}`}
             chatParticipant={chatlist}

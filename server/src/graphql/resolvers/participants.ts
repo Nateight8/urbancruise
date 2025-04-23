@@ -3,6 +3,8 @@ import { conversationParticipants } from "@/db/schema/conversation";
 import GraphqlContext from "@/types/types.utils";
 import { GraphQLError } from "graphql";
 import { eq, ne, desc } from "drizzle-orm";
+import { withFilter } from "graphql-subscriptions";
+
 export const participantsResolvers = {
   Query: {
     conversationParticipants: async (
@@ -19,8 +21,6 @@ export const participantsResolvers = {
         });
       }
 
-      console.log("WE HIT THE CONVERSATION PARTICIPANTS QUERY");
-
       // First, find all conversations the current user is in
       const userConversations =
         await db.query.conversationParticipants.findMany({
@@ -29,9 +29,7 @@ export const participantsResolvers = {
             conversation: {
               with: {
                 messages: {
-                  orderBy: (messages: typeof schema.messages) => [
-                    desc(messages.createdAt),
-                  ],
+                  orderBy: (messages) => [desc(messages.createdAt)],
                   limit: 1,
                 },
                 participants: {
@@ -45,28 +43,13 @@ export const participantsResolvers = {
           },
         });
 
-      console.log("userConversations:", userConversations);
-
       // Format the response
-      const formattedConversations = userConversations.map(
-        (
-          convo: typeof schema.conversationParticipants.$inferSelect & {
-            conversation: typeof schema.conversations.$inferSelect & {
-              participants: (typeof schema.conversationParticipants.$inferSelect & {
-                user: typeof schema.users.$inferSelect;
-              })[];
-              messages: (typeof schema.messages.$inferSelect)[];
-            };
-          }
-        ) => ({
-          user: convo.conversation.participants[0]?.user,
-          lastMessage: convo.conversation.messages[0] || null,
-          lastMessageAt: convo.conversation.lastMessageAt,
-          conversationId: convo.conversationId,
-        })
-      );
-
-      console.log("formattedConversations:", formattedConversations);
+      const formattedConversations = userConversations.map((convo) => ({
+        user: convo.conversation.participants[0]?.user,
+        lastMessage: convo.conversation.messages[0] || null,
+        lastMessageAt: convo.conversation.lastMessageAt,
+        conversationId: convo.conversationId,
+      }));
 
       // Ensure we always return an array, even if empty
       return formattedConversations || [];
@@ -74,4 +57,11 @@ export const participantsResolvers = {
   },
 
   Mutation: {},
+
+  Subscription: {
+    conversationParticipantsUpdated: {
+      subscribe: (_: any, __: any, { pubsub }: GraphqlContext) =>
+        pubsub.asyncIterableIterator(["CONVERSATION_PARTICIPANT_UPDATED"]),
+    },
+  },
 };
