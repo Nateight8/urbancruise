@@ -10,7 +10,10 @@ import { ExpressAuth, getSession } from "@auth/express";
 import { authConfig } from "@/config/auth.config.js";
 import { currentSession } from "@/middleware/auth.middleware.js";
 import { db } from "@/db/index.js";
-
+import { PubSub } from "graphql-subscriptions";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 interface MyContext {
   token?: String;
 }
@@ -26,15 +29,54 @@ const httpServer = http.createServer(app);
 // Set session in res.locals
 app.use(currentSession);
 
+// Create a PubSub instance
+const pubsub = new PubSub();
+
+// Create executable schema
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
 // Set up ExpressAuth to handle authentication
 // IMPORTANT: It is highly encouraged set up rate limiting on this route
 app.use("/api/auth/*", ExpressAuth(authConfig));
 
+// Set up WebSocket server for subscriptions
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: "/graphql",
+});
+
+// Set up WebSocket server
+const serverCleanup = useServer(
+  {
+    schema,
+    context: async (ctx: { connectionParams?: { session?: any } }) => {
+      // Get session from connection params if available
+      const session = ctx.connectionParams?.session || null;
+      return { session, db, pubsub };
+    },
+  },
+  wsServer
+);
+
+// Create Apollo Server
 const server = new ApolloServer<MyContext>({
-  typeDefs,
-  resolvers,
+  schema,
   csrfPrevention: true,
-  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  plugins: [
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose();
+          },
+        };
+      },
+    },
+  ],
 });
 
 async function startServer() {
@@ -47,7 +89,9 @@ async function startServer() {
     expressMiddleware(server, {
       context: async ({ req, res }) => {
         const session = res.locals.session || null;
-        return { db, session };
+
+        console.log("session:", session);
+        return { db, session, pubsub };
       },
     })
   );
@@ -57,6 +101,7 @@ async function startServer() {
   );
 
   console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+  console.log(`🔌 WebSocket server ready at ws://localhost:4000/graphql/ws`);
 }
 
 startServer();

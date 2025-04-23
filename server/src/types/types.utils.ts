@@ -1,13 +1,15 @@
 import { Session } from "@auth/express";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import * as schema from "../db/schema.js";
+import * as schema from "../db/schema/index.js";
+import { PubSub } from "graphql-subscriptions";
 
 export default interface GraphqlContext {
   session: Session;
   db: PostgresJsDatabase<typeof schema> & {
     $client: postgres.Sql<{}>;
   };
+  pubsub: PubSub;
 }
 
 // User type interface

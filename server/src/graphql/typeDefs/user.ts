@@ -13,7 +13,7 @@ export const userTypeDefs = gql`
   type User {
     id: ID!
     name: String
-    email: String!
+    email: String
     emailVerified: String
     image: String
     location: String
@@ -22,10 +22,9 @@ export const userTypeDefs = gql`
     onboardingCompleted: Boolean
     banner: String
     username: String
-    avatar: String
     createdAt: String
     updatedAt: String
-    conversationParticipationId: String
+    participantId: String
   }
 
   type GetLoggedInUserReturn {

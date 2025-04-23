@@ -1,12 +1,13 @@
 // conversationSchema.ts
 import {
-  pgTable,
-  serial,
-  text,
   timestamp,
-  boolean,
-  integer,
+  pgTable,
+  text,
   primaryKey,
+  integer,
+  uniqueIndex,
+  boolean,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -15,10 +16,9 @@ import { users } from "./auth";
 
 // Conversations table with deterministic IDs
 export const conversations = pgTable("conversations", {
-  // Unique conversation ID that will be used in the URL
-  id: varchar("id", { length: 64 }).primaryKey(),
+  id: text("id").primaryKey(),
   title: varchar("title", { length: 100 }),
-  isGroup: boolean("is_group").default(false).notNull(),
+  isGroup: boolean("is_group").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastMessageAt: timestamp("last_message_at"),
@@ -39,7 +39,7 @@ export const conversationParticipants = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    conversationId: varchar("conversation_id", { length: 64 })
+    conversationId: text("conversation_id")
       .notNull()
       .references(() => conversations.id, { onDelete: "cascade" }),
     joinedAt: timestamp("joined_at").defaultNow().notNull(),
@@ -48,11 +48,9 @@ export const conversationParticipants = pgTable(
       .default(false)
       .notNull(),
   },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.userId, table.conversationId] }),
-    };
-  }
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.conversationId] }),
+  })
 );
 
 // Define relations for conversationParticipants
@@ -72,12 +70,14 @@ export const conversationParticipantsRelations = relations(
 
 // Messages table
 export const messages = pgTable("messages", {
-  id: serial("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   content: text("content").notNull(),
   senderId: text("sender_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  conversationId: varchar("conversation_id", { length: 64 })
+  conversationId: text("conversation_id")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -98,19 +98,3 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     references: [conversations.id],
   }),
 }));
-
-// Utility function to generate deterministic conversation IDs
-export function generateConversationId(participantIds: number[]): string {
-  // Sort IDs to ensure the same conversation ID regardless of order
-  const sortedIds = [...participantIds].sort((a, b) => a - b);
-
-  // For groups (more than 2 participants), we include all IDs
-  const idString = sortedIds.join("_");
-
-  // Create a hash of the ID string for a fixed-length ID
-  const hash = createHash("sha256").update(idString).digest("hex");
-
-  // Return a prefix to indicate if it's a direct message or group
-  const prefix = participantIds.length === 2 ? "dm" : "group";
-  return `${prefix}_${hash.substring(0, 20)}`;
-}

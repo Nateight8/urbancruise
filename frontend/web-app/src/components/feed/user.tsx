@@ -15,7 +15,7 @@ export default function User({ user }: { user: User }) {
     <div>
       <div className="flex items-center gap-2 flex-col">
         <Avatar className="size-20">
-          <AvatarImage src="/images/pfp/pfp.jpeg" />
+          <AvatarImage src={user.image} />
           <AvatarFallback>
             <IconUser />
           </AvatarFallback>

@@ -22,6 +22,26 @@ const participantOperations = {
   },
 
   Mutations: {},
+
+  Subscriptions: {
+    conversationParticipantsUpdated: gql`
+      subscription ConversationParticipantsUpdated {
+        conversationParticipantsUpdated {
+          conversationId
+          user {
+            name
+            username
+            id
+            image
+          }
+          lastMessage {
+            content
+            id
+          }
+        }
+      }
+    `,
+  },
 };
 
 export interface ConversationParticipant {
@@ -44,6 +64,10 @@ export interface ConversationParticipant {
 
 export interface MyParticipantsResponse {
   conversationParticipants: ConversationParticipant[];
+}
+
+export interface ParticipantsUpdatedResponse {
+  conversationParticipantsUpdated: ConversationParticipant;
 }
 
 export default participantOperations;

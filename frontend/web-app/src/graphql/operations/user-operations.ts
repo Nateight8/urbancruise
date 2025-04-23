@@ -25,6 +25,7 @@ const userOperations = {
             name
             username
             participantId
+            image
           }
         }
       }
