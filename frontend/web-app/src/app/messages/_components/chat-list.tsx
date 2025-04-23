@@ -19,7 +19,7 @@ export default function ChatList() {
         <ScrollArea className="h-full">
           {Array.from({ length: 10 }).map((_, index) => (
             <div
-              key={index}
+              key={`skeleton-${index}`}
               className="flex items-center gap-2 p-4 hover:bg-muted/50 transition-colors hover:cursor-pointer"
             >
               <Skeleton className="size-12 rounded-full flex-shrink-0" />
@@ -37,7 +37,10 @@ export default function ChatList() {
     <aside className="w-80 h-full border-r py-2 pl-2">
       <ScrollArea className="h-full">
         {chatLists?.conversationParticipants.map((chatlist) => (
-          <ChatListItem key={chatlist.userId} chatParticipant={chatlist} />
+          <ChatListItem
+            key={`chat-${chatlist.conversationId}`}
+            chatParticipant={chatlist}
+          />
         ))}
       </ScrollArea>
     </aside>
