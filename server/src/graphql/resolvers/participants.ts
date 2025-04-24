@@ -1,6 +1,6 @@
-import * as schema from "@/db/schema";
-import { conversationParticipants } from "@/db/schema/conversation";
-import GraphqlContext from "@/types/types.utils";
+import * as schema from "../../db/schema";
+import { conversationParticipants } from "../../db/schema/conversation";
+import GraphqlContext from "../../types/types.utils";
 import { GraphQLError } from "graphql";
 import { eq, ne, desc } from "drizzle-orm";
 import { withFilter } from "graphql-subscriptions";

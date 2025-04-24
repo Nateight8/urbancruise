@@ -4,16 +4,17 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import express, { NextFunction } from "express";
 import http from "http";
 import cors from "cors";
-import resolvers from "@/graphql/resolvers/index.js";
-import typeDefs from "@/graphql/typeDefs/index.js";
+import resolvers from "./graphql/resolvers/index.js";
+import typeDefs from "./graphql/typeDefs/index.js";
 import { ExpressAuth, getSession } from "@auth/express";
-import { authConfig } from "@/config/auth.config.js";
-import { currentSession } from "@/middleware/auth.middleware.js";
-import { db } from "@/db/index.js";
+import { authConfig } from "./config/auth.config.js";
+import { currentSession } from "./middleware/auth.middleware.js";
+import { db } from "./db/index.js";
 import { PubSub } from "graphql-subscriptions";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+
 interface MyContext {
   token?: String;
 }

@@ -5,9 +5,9 @@ import {
   conversationParticipants,
   messages,
   users,
-} from "@/db/schema";
-import * as schema from "@/db/schema";
-import GraphqlContext from "@/types/types.utils";
+} from "../../db/schema";
+import * as schema from "../../db/schema";
+import GraphqlContext from "../../types/types.utils";
 import { GraphQLError } from "graphql";
 import { withFilter } from "graphql-subscriptions";
 
