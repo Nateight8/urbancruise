@@ -1,0 +1,1 @@
+ALTER TABLE "user" ALTER COLUMN "participant_id" DROP NOT NULL;

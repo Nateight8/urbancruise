@@ -1,0 +1,1 @@
+DROP TABLE "message_recipient_status" CASCADE;
