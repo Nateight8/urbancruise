@@ -1,9 +1,9 @@
-import { User, users } from "@/db/schema/auth";
-import GraphqlContext, { UserInput } from "@/types/types.utils.js";
+import { User, users } from "../../db/schema/auth";
+import GraphqlContext, { UserInput } from "../../types/types.utils.js";
 import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
-import { UserProfileInput } from "@/graphql/typeDefs/user.js";
-import * as schema from "@/db/schema/auth.js";
+import { UserProfileInput } from "../typeDefs/user.js";
+import * as schema from "../../db/schema/auth.js";
 import { Snowflake } from "@theinternetfolks/snowflake";
 
 const userResolvers = {

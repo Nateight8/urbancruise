@@ -13,7 +13,8 @@
     "rootDir": "./src",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "preserveSymlinks": true
   },
   "ts-node": {
     "esm": true,
