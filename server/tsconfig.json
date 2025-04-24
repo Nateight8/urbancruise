@@ -9,6 +9,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "paths": {
       "@/*": ["src/*"]
     }
