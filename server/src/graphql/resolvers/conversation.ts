@@ -138,6 +138,9 @@ export const conversationResolvers = {
             messageStatusUpdated: {
               ...message,
               status: "DELIVERED",
+              id: message.id,
+              senderId: message.senderId,
+              conversationId: message.conversationId,
             },
             conversationId: message.conversationId,
           });
@@ -168,9 +171,22 @@ export const conversationResolvers = {
 
         // Update each message
         for (const messageId of args.messageIds) {
-          const message = await db.query.messages.findFirst({
+          type MessageWithRelations = typeof schema.messages.$inferSelect & {
+            sender: typeof schema.users.$inferSelect;
+            conversation?: {
+              participants: Array<{
+                user: typeof schema.users.$inferSelect;
+              }>;
+            };
+          };
+
+          // First, get the message with its sender information
+          const message = (await db.query.messages.findFirst({
             where: eq(messages.id, messageId),
-          });
+            with: {
+              sender: true,
+            },
+          })) as MessageWithRelations | null;
 
           if (!message) continue;
 
@@ -181,14 +197,67 @@ export const conversationResolvers = {
               .set({ status: "read" })
               .where(eq(messages.id, messageId));
 
+            // Get the sender's participant record for this conversation
+            const senderParticipant =
+              await db.query.conversationParticipants.findFirst({
+                where: and(
+                  eq(
+                    conversationParticipants.conversationId,
+                    message.conversationId
+                  ),
+                  eq(conversationParticipants.userId, message.senderId)
+                ),
+                with: {
+                  user: true,
+                },
+              });
+
+            if (!senderParticipant) continue;
+
             // Publish message status update
             await pubsub.publish("MESSAGE_STATUS_UPDATED", {
               messageStatusUpdated: {
                 ...message,
                 status: "READ",
+                id: message.id,
+                senderId: message.senderId,
+                conversationId: message.conversationId,
               },
               conversationId: message.conversationId,
             });
+
+            // Also publish a conversation participant update for the sender
+            const participantUpdate = {
+              conversationId: message.conversationId,
+              user: senderParticipant.user,
+              lastMessage: {
+                content: message.content,
+                id: message.id,
+                status: "READ",
+                senderId: message.senderId,
+              },
+              lastMessageAt: new Date(),
+              lastMessageStatus: "READ",
+              hasSeenLatestMessage: true,
+            };
+
+            await pubsub.publish("CONVERSATION_PARTICIPANT_UPDATED", {
+              conversationParticipantsUpdated: participantUpdate,
+            });
+
+            // Update the hasSeenLatestMessage flag for the current user
+            await db
+              .update(conversationParticipants)
+              .set({ hasSeenLatestMessage: true })
+              .where(
+                and(
+                  eq(
+                    conversationParticipants.conversationId,
+                    message.conversationId
+                  ),
+                  eq(conversationParticipants.userId, user.id)
+                )
+              );
           }
         }
 
@@ -435,6 +504,11 @@ export const conversationResolvers = {
             );
 
             if (participantUser) {
+              console.log(
+                "Publishing participant update for:",
+                participantUser.id
+              );
+
               // Create the participant update payload
               const participantUpdate = {
                 conversationId: vibeId,
@@ -447,6 +521,7 @@ export const conversationResolvers = {
                 },
                 lastMessageAt: new Date(),
                 lastMessageStatus: mapStatusToEnum(freshMsg.status),
+                hasSeenLatestMessage: false,
               };
 
               // Publish the update for this participant
@@ -515,6 +590,11 @@ export const conversationResolvers = {
           ]);
         },
         (payload, variables) => {
+          // If conversationId is empty or not provided, listen to all status updates
+          if (!variables.conversationId) {
+            return true;
+          }
+          // Otherwise, filter by the specific conversation
           return payload.conversationId === variables.conversationId;
         }
       ),
