@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: urbancruise-server
+    env: node
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.1
+      - key: DATABASE_URL
+        sync: false # Will be set manually in Render dashboard
