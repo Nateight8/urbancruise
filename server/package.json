@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc && tsc-alias",
-    "start": "node -r tsconfig-paths/register -r ts-node/register/transpile-only dist/index.js",
+    "start": "node -r ./dist/paths.js dist/index.js",
     "postinstall": "tsc && tsc-alias"
   },
   "keywords": [],

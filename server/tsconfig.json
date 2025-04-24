@@ -19,5 +19,5 @@
     "esm": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.js", "src/paths.js"]
 }
