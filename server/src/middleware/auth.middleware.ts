@@ -4,7 +4,6 @@ import { authConfig } from "../config/auth.config.js";
 import type { NextFunction, Request, Response } from "express";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "../db/index.js";
-import { users } from "../db/schema/auth.js";
 
 //here for authentication
 export async function authenticatedUser(
@@ -25,7 +24,6 @@ export async function authenticatedUser(
 }
 
 //current session middleware
-
 export async function currentSession(
   req: Request,
   res: Response,
@@ -33,20 +31,19 @@ export async function currentSession(
 ) {
   const session =
     (await getSession(req, {
-      ...authConfig, //spread the config so i can configure session strategy to database
-      session: { strategy: "database" }, //session strategy = database requires the adapter
+      ...authConfig,
       adapter: DrizzleAdapter(db),
-
-      //callbacks
+      session: { strategy: "database" },
       callbacks: {
         session({ session, user }) {
-          session.user.id = user.id;
-
+          if (session.user) {
+            session.user.id = user.id;
+          }
           return session;
         },
       },
     })) ?? undefined;
 
-  res.locals.session = session; //sets session to res.locals.session, this is how we get the session
+  res.locals.session = session;
   return next();
 }
