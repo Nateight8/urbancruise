@@ -2,18 +2,24 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatListItem from "./chat-list-item";
 // import { chatLists } from "./chat-lists";
-import { useQuery, useSubscription } from "@apollo/client";
+import { useApolloClient, useQuery, useSubscription } from "@apollo/client";
 import participantOperations, {
   MyParticipantsResponse,
   ConversationParticipant,
   ParticipantsUpdatedResponse,
 } from "@/graphql/operations/participant-operations";
+import conversationOperations from "@/graphql/operations/conversation-operations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 
 export default function ChatList() {
+  const client = useApolloClient();
   const { data: chatListsData, loading } = useQuery<MyParticipantsResponse>(
-    participantOperations.Querries.myParticipants
+    participantOperations.Querries.myParticipants,
+    {
+      // Ensure we're always getting fresh data
+      fetchPolicy: "network-only",
+    }
   );
 
   const [chatLists, setChatLists] = useState<ConversationParticipant[]>([]);
@@ -32,6 +38,7 @@ export default function ChatList() {
       onData: ({ data }) => {
         if (data.data?.conversationParticipantsUpdated) {
           const updatedParticipant = data.data.conversationParticipantsUpdated;
+          console.log("Conversation participant updated:", updatedParticipant);
 
           setChatLists((prev) => {
             // Check if conversation already exists in the list
@@ -46,6 +53,7 @@ export default function ChatList() {
               updated[existingIndex] = {
                 ...updated[existingIndex],
                 lastMessage: updatedParticipant.lastMessage,
+                lastMessageStatus: updatedParticipant.lastMessageStatus,
               };
 
               // Sort to move this conversation to the top
@@ -66,6 +74,20 @@ export default function ChatList() {
       },
     }
   );
+
+  // Force refresh chatlist data whenever a message status changes
+  useSubscription(conversationOperations.Subscriptions.messageStatusChanged, {
+    onData: ({ data }) => {
+      if (data?.data?.messageStatusUpdated) {
+        console.log("Message status updated:", data.data.messageStatusUpdated);
+
+        // Refetch the whole chat list to get updated statuses
+        client.refetchQueries({
+          include: [participantOperations.Querries.myParticipants],
+        });
+      }
+    },
+  });
 
   if (loading)
     return (

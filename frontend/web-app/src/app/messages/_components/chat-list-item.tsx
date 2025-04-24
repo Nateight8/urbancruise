@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCachedUser } from "@/hooks/use-cached-user";
+import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 // interface Chat {
 //   id: string;
 //   name: string;
@@ -33,7 +35,7 @@ export default function ChatListItem({
 
   // Function to render the message status text (Snapchat style)
   const renderStatusText = () => {
-    if (!lastMessage) return "New Chat";
+    if (!lastMessage) return "Start vibing...";
 
     // Determine the appropriate status text based on who sent the message
     if (isOwnMessage) {
@@ -64,35 +66,17 @@ export default function ChatListItem({
     }
   };
 
-  // Function to render the status icon
-  // const renderStatusIcon = () => {
-  //   if (!lastMessage) return null;
-
-  //   if (isOwnMessage) {
-  //     const status = lastMessage.status || lastMessageStatus;
-  //     switch (status) {
-  //       case "SENT":
-  //         return <Clock className="h-3.5 w-3.5 text-muted-foreground" />;
-  //       case "DELIVERED":
-  //         return <CheckIcon className="h-3.5 w-3.5 text-muted-foreground" />;
-  //       case "READ":
-  //         return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />;
-  //       case "FAILED":
-  //         return <span className="text-xs text-red-500">!</span>;
-  //       default:
-  //         return <Send className="h-3.5 w-3.5 text-muted-foreground" />;
-  //     }
-  //   } else {
-  //     // For received messages, you can show an icon based on content type
-  //     // This is a simplified example - you'd need content analysis for real implementation
-  //     return <Send className="h-3.5 w-3.5 text-primary rotate-180" />;
-  //   }
-  // };
+  const isActive = usePathname() === `/messages/${conversationId}`;
 
   return (
     <Link
       href={`/messages/${conversationId}`}
-      className="flex items-center gap-2 p-4 hover:bg-muted/50 transition-colors hover:cursor-pointer"
+      className={cn(
+        "flex items-center gap-2 p-4 hover:bg-muted/50 transition-colors hover:cursor-pointer",
+        {
+          "bg-muted/20 border-y border-border/40": isActive,
+        }
+      )}
     >
       <>
         <Avatar className="size-12 flex-shrink-0">
@@ -105,7 +89,7 @@ export default function ChatListItem({
           <h3 className="truncate font-medium">{user.username}</h3>
           <div className="flex items-center gap-1.5">
             {/* {renderStatusIcon()} */}
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground italic truncate">
               {renderStatusText()}
             </p>
           </div>

@@ -9,13 +9,13 @@ const participantOperations = {
           conversationId
           hasSeenLatestMessage
           user {
-            username
             id
+            username
             image
           }
           lastMessage {
-            content
             id
+            content
             senderId
             status
           }
@@ -34,13 +34,13 @@ const participantOperations = {
           conversationId
           hasSeenLatestMessage
           user {
-            username
             id
+            username
             image
           }
           lastMessage {
-            content
             id
+            content
             senderId
             status
           }
