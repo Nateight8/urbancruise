@@ -2,11 +2,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConversationParticipant } from "@/graphql/operations/participant-operations";
 import {
-  CheckIcon,
-  CheckCheck,
-  Clock,
+  // CheckIcon,
+  // CheckCheck,
+  // Clock,
   UserRoundIcon,
-  Send,
+  // Send,
 } from "lucide-react";
 import Link from "next/link";
 import { useCachedUser } from "@/hooks/use-cached-user";
@@ -37,30 +37,27 @@ export default function ChatListItem({
 
     // Determine the appropriate status text based on who sent the message
     if (isOwnMessage) {
-      // For messages sent by current user, show delivery status
       const status = lastMessage.status || lastMessageStatus;
       switch (status) {
         case "SENT":
-          return "New Chat";
+          return "🚀 Yeeted";
         case "DELIVERED":
-          return "Delivered";
+          return "🎯 Landed";
         case "READ":
-          return "Seen";
+          return "👀 Peeped";
         case "FAILED":
-          return "Failed to send";
+          return "💀 Flopped";
         default:
-          return "New Chat";
+          return "🚀 Yeeted";
       }
     } else {
-      // For received messages, show "New Chat" if status is SENT
       const status = lastMessage.status || lastMessageStatus;
       if (status === "SENT") {
-        return "New Chat";
+        return "🔥 Sheesh";
       }
       if (status === "READ") {
-        return "Received";
+        return "🧠 Vibe";
       }
-      // Otherwise show content preview
       return lastMessage.content.length > 30
         ? `${lastMessage.content.substring(0, 30)}...`
         : lastMessage.content;
@@ -68,29 +65,29 @@ export default function ChatListItem({
   };
 
   // Function to render the status icon
-  const renderStatusIcon = () => {
-    if (!lastMessage) return null;
+  // const renderStatusIcon = () => {
+  //   if (!lastMessage) return null;
 
-    if (isOwnMessage) {
-      const status = lastMessage.status || lastMessageStatus;
-      switch (status) {
-        case "SENT":
-          return <Clock className="h-3.5 w-3.5 text-muted-foreground" />;
-        case "DELIVERED":
-          return <CheckIcon className="h-3.5 w-3.5 text-muted-foreground" />;
-        case "READ":
-          return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />;
-        case "FAILED":
-          return <span className="text-xs text-red-500">!</span>;
-        default:
-          return <Send className="h-3.5 w-3.5 text-muted-foreground" />;
-      }
-    } else {
-      // For received messages, you can show an icon based on content type
-      // This is a simplified example - you'd need content analysis for real implementation
-      return <Send className="h-3.5 w-3.5 text-primary rotate-180" />;
-    }
-  };
+  //   if (isOwnMessage) {
+  //     const status = lastMessage.status || lastMessageStatus;
+  //     switch (status) {
+  //       case "SENT":
+  //         return <Clock className="h-3.5 w-3.5 text-muted-foreground" />;
+  //       case "DELIVERED":
+  //         return <CheckIcon className="h-3.5 w-3.5 text-muted-foreground" />;
+  //       case "READ":
+  //         return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />;
+  //       case "FAILED":
+  //         return <span className="text-xs text-red-500">!</span>;
+  //       default:
+  //         return <Send className="h-3.5 w-3.5 text-muted-foreground" />;
+  //     }
+  //   } else {
+  //     // For received messages, you can show an icon based on content type
+  //     // This is a simplified example - you'd need content analysis for real implementation
+  //     return <Send className="h-3.5 w-3.5 text-primary rotate-180" />;
+  //   }
+  // };
 
   return (
     <Link
@@ -107,7 +104,7 @@ export default function ChatListItem({
         <div className="flex-1 min-w-0 overflow-hidden">
           <h3 className="truncate font-medium">{user.username}</h3>
           <div className="flex items-center gap-1.5">
-            {renderStatusIcon()}
+            {/* {renderStatusIcon()} */}
             <p className="text-sm text-muted-foreground truncate">
               {renderStatusText()}
             </p>
