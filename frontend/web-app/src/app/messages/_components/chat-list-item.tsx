@@ -41,7 +41,7 @@ export default function ChatListItem({
       const status = lastMessage.status || lastMessageStatus;
       switch (status) {
         case "SENT":
-          return "Sent";
+          return "New Chat";
         case "DELIVERED":
           return "Delivered";
         case "READ":
@@ -49,10 +49,18 @@ export default function ChatListItem({
         case "FAILED":
           return "Failed to send";
         default:
-          return "Sent";
+          return "New Chat";
       }
     } else {
-      // For messages received, show content preview
+      // For received messages, show "New Chat" if status is SENT
+      const status = lastMessage.status || lastMessageStatus;
+      if (status === "SENT") {
+        return "New Chat";
+      }
+      if (status === "READ") {
+        return "Received";
+      }
+      // Otherwise show content preview
       return lastMessage.content.length > 30
         ? `${lastMessage.content.substring(0, 30)}...`
         : lastMessage.content;
