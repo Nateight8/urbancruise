@@ -5,6 +5,11 @@ import { GraphQLError } from "graphql";
 import { eq, ne, desc } from "drizzle-orm";
 import { withFilter } from "graphql-subscriptions";
 
+// Helper function to convert database status to GraphQL enum format
+function mapStatusToEnum(status: string): string {
+  return status.toUpperCase();
+}
+
 export const participantsResolvers = {
   Query: {
     conversationParticipants: async (
@@ -44,12 +49,26 @@ export const participantsResolvers = {
         });
 
       // Format the response
-      const formattedConversations = userConversations.map((convo) => ({
-        user: convo.conversation.participants[0]?.user,
-        lastMessage: convo.conversation.messages[0] || null,
-        lastMessageAt: convo.conversation.lastMessageAt,
-        conversationId: convo.conversationId,
-      }));
+      const formattedConversations = userConversations
+        .filter((convo) => convo && convo.conversation && convo.conversationId)
+        .map((convo) => {
+          const lastMessage = convo.conversation.messages[0] || null;
+
+          // Convert database status to GraphQL enum format (uppercase)
+          let lastMessageStatus = null;
+          if (lastMessage?.status) {
+            lastMessageStatus = mapStatusToEnum(lastMessage.status);
+          }
+
+          return {
+            user: convo.conversation.participants[0]?.user,
+            lastMessage,
+            lastMessageAt: convo.conversation.lastMessageAt,
+            conversationId: convo.conversationId,
+            hasSeenLatestMessage: !!convo.hasSeenLatestMessage,
+            lastMessageStatus,
+          };
+        });
 
       // Ensure we always return an array, even if empty
       return formattedConversations || [];
@@ -60,8 +79,14 @@ export const participantsResolvers = {
 
   Subscription: {
     conversationParticipantsUpdated: {
-      subscribe: (_: any, __: any, { pubsub }: GraphqlContext) =>
-        pubsub.asyncIterableIterator(["CONVERSATION_PARTICIPANT_UPDATED"]),
+      subscribe: function (_: any, __: any, context?: GraphqlContext) {
+        if (!context || !context.pubsub) {
+          throw new Error("PubSub not available");
+        }
+        return context.pubsub.asyncIterableIterator([
+          "CONVERSATION_PARTICIPANT_UPDATED",
+        ]);
+      },
     },
   },
 };

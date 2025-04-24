@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { MessageStatus } from "./conversation-operations";
 
 const participantOperations = {
   Querries: {
@@ -6,8 +7,8 @@ const participantOperations = {
       query ConversationParticipants {
         conversationParticipants {
           conversationId
+          hasSeenLatestMessage
           user {
-            name
             username
             id
             image
@@ -15,7 +16,10 @@ const participantOperations = {
           lastMessage {
             content
             id
+            senderId
+            status
           }
+          lastMessageStatus
         }
       }
     `,
@@ -28,8 +32,8 @@ const participantOperations = {
       subscription ConversationParticipantsUpdated {
         conversationParticipantsUpdated {
           conversationId
+          hasSeenLatestMessage
           user {
-            name
             username
             id
             image
@@ -37,7 +41,10 @@ const participantOperations = {
           lastMessage {
             content
             id
+            senderId
+            status
           }
+          lastMessageStatus
         }
       }
     `,
@@ -46,20 +53,19 @@ const participantOperations = {
 
 export interface ConversationParticipant {
   conversationId: string;
-  userId: string;
-  joinedAt: Date;
-  leftAt: Date | null;
   hasSeenLatestMessage: boolean;
   user: {
     id: string;
-    name: string | null;
     username: string | null;
     image: string | null;
   };
-  lastMessage: {
+  lastMessage?: {
     content: string;
     id: string;
+    senderId?: string;
+    status?: MessageStatus;
   } | null;
+  lastMessageStatus?: MessageStatus;
 }
 
 export interface MyParticipantsResponse {

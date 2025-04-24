@@ -1,5 +1,6 @@
 import { Message } from "@/graphql/operations/conversation-operations";
 import { useCachedUser } from "@/hooks/use-cached-user";
+import { CheckIcon, CheckCheck, Clock } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function ChatMessage({ message }: { message: Message }) {
@@ -8,6 +9,24 @@ export default function ChatMessage({ message }: { message: Message }) {
   const userId = cachedUser?.id;
   const messageSenderUsername = message.sender?.username;
   const isOwnMessage = message.senderId === userId;
+
+  // Only show status for messages sent by the current user
+  const renderStatusIndicator = () => {
+    if (!isOwnMessage) return null;
+
+    switch (message.status) {
+      case "SENT":
+        return <Clock className="h-3 w-3 text-muted-foreground ml-1" />;
+      case "DELIVERED":
+        return <CheckIcon className="h-3 w-3 text-muted-foreground ml-1" />;
+      case "READ":
+        return <CheckCheck className="h-3 w-3 text-blue-500 ml-1" />;
+      case "FAILED":
+        return <span className="text-xs text-red-500 ml-1">!</span>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <motion.div
@@ -39,7 +58,10 @@ export default function ChatMessage({ message }: { message: Message }) {
             isOwnMessage ? "bg-red-500" : "bg-blue-500"
           }`}
         />
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        <div className="flex items-center">
+          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          {renderStatusIndicator()}
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -17,6 +17,16 @@ export const conversationTypeDefs = gql`
   }
 
   """
+  Message status enum
+  """
+  enum MessageStatus {
+    SENT
+    DELIVERED
+    READ
+    FAILED
+  }
+
+  """
   Message type for conversations
   """
   type Message {
@@ -28,6 +38,7 @@ export const conversationTypeDefs = gql`
     updatedAt: DateTime
     isEdited: Boolean
     isDeleted: Boolean
+    status: MessageStatus
     sender: User
   }
 
@@ -39,6 +50,7 @@ export const conversationTypeDefs = gql`
     hasSeenLatestMessage: Boolean!
     user: User!
     lastMessage: Message
+    lastMessageStatus: MessageStatus
   }
 
   """
@@ -123,6 +135,11 @@ export const conversationTypeDefs = gql`
     Mark messages as read
     """
     markMessagesAsRead(messageIds: [ID!]!): Boolean!
+
+    """
+    Mark message as delivered
+    """
+    markMessageAsDelivered(messageId: ID!): Boolean!
 
     """
     Delete a message

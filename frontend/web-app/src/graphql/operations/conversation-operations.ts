@@ -17,6 +17,7 @@ const conversationOperations = {
             id
             isDeleted
             isEdited
+            status
             sender {
               username
               id
@@ -42,6 +43,16 @@ const conversationOperations = {
         }
       }
     `,
+    markMessageAsDelivered: gql`
+      mutation MarkMessageAsDelivered($messageId: ID!) {
+        markMessageAsDelivered(messageId: $messageId)
+      }
+    `,
+    markMessageAsRead: gql`
+      mutation MarkMessageAsRead($messageId: ID!) {
+        markMessagesAsRead(messageIds: [$messageId])
+      }
+    `,
   },
 
   Subscriptions: {
@@ -49,11 +60,31 @@ const conversationOperations = {
       subscription Subscription($conversationId: ID!) {
         messageAdded(conversationId: $conversationId) {
           content
+          id
+          senderId
+          conversationId
+          isDeleted
+          isEdited
+          status
+          sender {
+            id
+            username
+          }
+        }
+      }
+    `,
+    messageStatusChanged: gql`
+      subscription MessageStatusChanged($conversationId: ID!) {
+        messageStatusUpdated(conversationId: $conversationId) {
+          id
+          status
         }
       }
     `,
   },
 };
+
+export type MessageStatus = "SENT" | "DELIVERED" | "READ" | "FAILED";
 
 export interface Message {
   __typename?: "Message";
@@ -62,6 +93,7 @@ export interface Message {
   id: string;
   isDeleted: boolean;
   isEdited: boolean;
+  status?: MessageStatus;
   sender: {
     __typename?: "User";
     username: string;

@@ -64,6 +64,13 @@
       "when": 1745215486202,
       "tag": "0008_young_barracuda",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1745476155477,
+      "tag": "0009_daffy_tattoo",
+      "breakpoints": true
     }
   ]
 }

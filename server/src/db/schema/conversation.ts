@@ -9,10 +9,19 @@ import {
   boolean,
   uuid,
   varchar,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createHash } from "crypto";
 import { users } from "./auth";
+
+// Define message status enum
+export const messageStatusEnum = pgEnum("message_status", [
+  "sent", // Message has been sent to server
+  "delivered", // Message has been delivered to recipient's device
+  "read", // Message has been seen by recipient
+  "failed", // Message failed to send
+]);
 
 // Conversations table with deterministic IDs
 export const conversations = pgTable("conversations", {
@@ -80,6 +89,7 @@ export const messages = pgTable("messages", {
   conversationId: text("conversation_id")
     .notNull()
     .references(() => conversations.id, { onDelete: "cascade" }),
+  status: messageStatusEnum("status").default("sent").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   isEdited: boolean("is_edited").default(false).notNull(),

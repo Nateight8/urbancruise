@@ -24,6 +24,11 @@ interface SendMessageResponse {
   sentMessage?: typeof schema.messages.$inferSelect;
 }
 
+// Helper function to convert database status to GraphQL enum format
+function mapStatusToEnum(status: string): string {
+  return status.toUpperCase();
+}
+
 export const conversationResolvers = {
   Query: {
     conversation: async (
@@ -82,10 +87,117 @@ export const conversationResolvers = {
         });
       }
 
-      return conversation;
+      // Map message status to uppercase for GraphQL enum
+      const messagesWithMappedStatus = conversation.messages.map((message) => ({
+        ...message,
+        status: mapStatusToEnum(message.status),
+      }));
+
+      // Return conversation with mapped message statuses
+      return {
+        ...conversation,
+        messages: messagesWithMappedStatus,
+      };
     },
   },
   Mutation: {
+    markMessageAsDelivered: async (
+      _: any,
+      args: { messageId: string },
+      context: GraphqlContext
+    ): Promise<boolean> => {
+      try {
+        const { db, session, pubsub } = context;
+        const user = session?.user;
+
+        if (!user?.id) {
+          throw new GraphQLError("Unauthorized", {
+            extensions: { code: "UNAUTHENTICATED" },
+          });
+        }
+
+        const message = await db.query.messages.findFirst({
+          where: eq(messages.id, args.messageId),
+        });
+
+        if (!message) {
+          throw new GraphQLError("Message not found", {
+            extensions: { code: "NOT_FOUND" },
+          });
+        }
+
+        // Update message status to delivered if it's not the sender
+        if (message.senderId !== user.id && message.status === "sent") {
+          await db
+            .update(messages)
+            .set({ status: "delivered" })
+            .where(eq(messages.id, args.messageId));
+
+          // Publish message status update
+          await pubsub.publish("MESSAGE_STATUS_UPDATED", {
+            messageStatusUpdated: {
+              ...message,
+              status: "DELIVERED",
+            },
+            conversationId: message.conversationId,
+          });
+
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error("Error marking message as delivered:", error);
+        return false;
+      }
+    },
+    markMessagesAsRead: async (
+      _: any,
+      args: { messageIds: string[] },
+      context: GraphqlContext
+    ): Promise<boolean> => {
+      try {
+        const { db, session, pubsub } = context;
+        const user = session?.user;
+
+        if (!user?.id) {
+          throw new GraphQLError("Unauthorized", {
+            extensions: { code: "UNAUTHENTICATED" },
+          });
+        }
+
+        // Update each message
+        for (const messageId of args.messageIds) {
+          const message = await db.query.messages.findFirst({
+            where: eq(messages.id, messageId),
+          });
+
+          if (!message) continue;
+
+          // Update message status to read if it's not the sender
+          if (message.senderId !== user.id) {
+            await db
+              .update(messages)
+              .set({ status: "read" })
+              .where(eq(messages.id, messageId));
+
+            // Publish message status update
+            await pubsub.publish("MESSAGE_STATUS_UPDATED", {
+              messageStatusUpdated: {
+                ...message,
+                status: "READ",
+              },
+              conversationId: message.conversationId,
+            });
+          }
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+        return false;
+      }
+    },
     sendMessage: async (
       _: any,
       args: SendMessageArgs,
@@ -95,7 +207,6 @@ export const conversationResolvers = {
         const { db, session, pubsub } = context;
         const user = session?.user;
 
-        // Step 1: Auth check
         if (!user?.id) {
           throw new GraphQLError(
             "Yo, login before you can slide into DMs! 🔒",
@@ -256,6 +367,7 @@ export const conversationResolvers = {
               conversationId: vibeId,
               isEdited: false,
               isDeleted: false,
+              status: "sent",
             })
             .returning();
         } catch (dbError) {
@@ -303,7 +415,10 @@ export const conversationResolvers = {
         // After successfully creating the message, publish it
         if (freshMsg) {
           await pubsub.publish("MESSAGE_ADDED", {
-            messageAdded: freshMsg,
+            messageAdded: {
+              ...freshMsg,
+              status: mapStatusToEnum(freshMsg.status),
+            },
             conversationId: vibeId,
           });
 
@@ -324,8 +439,14 @@ export const conversationResolvers = {
               const participantUpdate = {
                 conversationId: vibeId,
                 user: currentUserRecord,
-                lastMessage: freshMsg,
+                lastMessage: {
+                  content: freshMsg.content,
+                  id: freshMsg.id,
+                  status: mapStatusToEnum(freshMsg.status),
+                  senderId: freshMsg.senderId,
+                },
                 lastMessageAt: new Date(),
+                lastMessageStatus: mapStatusToEnum(freshMsg.status),
               };
 
               // Publish the update for this participant
@@ -341,7 +462,16 @@ export const conversationResolvers = {
           success: true,
           conversationUpdated: true,
           conversation: convo,
-          sentMessage: freshMsg,
+          sentMessage: freshMsg
+            ? {
+                ...freshMsg,
+                status: freshMsg.status as
+                  | "sent"
+                  | "delivered"
+                  | "read"
+                  | "failed",
+              }
+            : undefined,
         };
       } catch (error) {
         // Global error handler for unexpected errors
@@ -363,7 +493,27 @@ export const conversationResolvers = {
   Subscription: {
     messageAdded: {
       subscribe: withFilter(
-        (_, __, { pubsub }) => pubsub.asyncIterableIterator(["MESSAGE_ADDED"]),
+        (_: any, __: any, context?: GraphqlContext) => {
+          if (!context || !context.pubsub) {
+            throw new Error("PubSub not available");
+          }
+          return context.pubsub.asyncIterableIterator(["MESSAGE_ADDED"]);
+        },
+        (payload, variables) => {
+          return payload.conversationId === variables.conversationId;
+        }
+      ),
+    },
+    messageStatusUpdated: {
+      subscribe: withFilter(
+        (_: any, __: any, context?: GraphqlContext) => {
+          if (!context || !context.pubsub) {
+            throw new Error("PubSub not available");
+          }
+          return context.pubsub.asyncIterableIterator([
+            "MESSAGE_STATUS_UPDATED",
+          ]);
+        },
         (payload, variables) => {
           return payload.conversationId === variables.conversationId;
         }
