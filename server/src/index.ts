@@ -87,7 +87,13 @@ async function startServer() {
     cors<cors.CorsRequest>(corsOptions),
     express.json(),
     expressMiddleware(server, {
-      context: async ({ req, res }) => {
+      context: async ({
+        req,
+        res,
+      }: {
+        req: express.Request;
+        res: express.Response;
+      }) => {
         const session = res.locals.session || null;
 
         console.log("session:", session);

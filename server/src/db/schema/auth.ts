@@ -9,10 +9,9 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-// import type { AdapterAccount } from "@auth/core/adapters";
+import type { AdapterAccount } from "@auth/core/adapters";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { AdapterAccount } from "@auth/express/adapters";
 
 const connectionString = process.env.DATABASE_URL!;
 const pool = postgres(connectionString, { max: 1 });
