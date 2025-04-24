@@ -10,6 +10,8 @@ export default function ChatMessage({ message }: { message: Message }) {
   const messageSenderUsername = message.sender?.username;
   const isOwnMessage = message.senderId === userId;
 
+  console.log("message.status", message.status);
+
   // Only show status for messages sent by the current user
   const renderStatusIndicator = () => {
     if (!isOwnMessage) return null;

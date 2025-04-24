@@ -18,6 +18,7 @@ const conversationOperations = {
             isDeleted
             isEdited
             status
+            createdAt
             sender {
               username
               id
@@ -66,6 +67,7 @@ const conversationOperations = {
           isDeleted
           isEdited
           status
+          createdAt
           sender {
             id
             username
@@ -78,6 +80,8 @@ const conversationOperations = {
         messageStatusUpdated(conversationId: $conversationId) {
           id
           status
+          senderId
+          conversationId
         }
       }
     `,
@@ -94,6 +98,7 @@ export interface Message {
   isDeleted: boolean;
   isEdited: boolean;
   status?: MessageStatus;
+  createdAt?: string;
   sender: {
     __typename?: "User";
     username: string;
