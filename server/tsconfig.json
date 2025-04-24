@@ -9,8 +9,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "outDir": "./dist",
-    "rootDir": "./src",
     "paths": {
       "@/*": ["src/*"]
     }
@@ -19,6 +17,5 @@
     "esm": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"]
 }
