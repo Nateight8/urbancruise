@@ -3,10 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
-import conversationOperations, {
-  GetConversationResponse,
-  Message,
-} from "@/graphql/operations/conversation-operations";
+import conversationOperations from "@/graphql/operations/conversation-operations";
 import { useMutation } from "@apollo/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconMoodSmile, IconPhoto, IconSend2 } from "@tabler/icons-react";
@@ -46,62 +43,9 @@ export default function ChatInput({ messageId }: { messageId: string }) {
   const [sendMessage, { loading }] = useMutation(
     conversationOperations.Mutations.sendMessage,
     {
-      optimisticResponse: {
-        sendMessage: {
-          __typename: "SendMessageResponse",
-          success: true,
-        },
-      },
       onCompleted: () => {
         form.reset();
         setShouldFocus(true);
-      },
-      update: (cache, { data }) => {
-        if (data?.sendMessage?.success) {
-          // Read the existing conversation data
-          const existingData = cache.readQuery<GetConversationResponse>({
-            query: conversationOperations.Querries.getConversation,
-            variables: { conversationId: messageId },
-          });
-
-          if (existingData?.conversation && cachedUser) {
-            // Create a new message object with fallback values if needed
-            const newMessage: Message = {
-              __typename: "Message",
-              id: `temp-${Date.now()}`,
-              content: form.getValues().message,
-              conversationId: messageId,
-              isDeleted: false,
-              isEdited: false,
-              sender: {
-                __typename: "User",
-                id: cachedUser.id,
-                username: cachedUser.username,
-              },
-              senderId: cachedUser.id,
-            };
-
-            console.log(
-              "Optimistic Message:",
-              JSON.stringify(newMessage, null, 2)
-            );
-            console.log("Sender in optimistic update:", newMessage.sender);
-
-            // Update the cache with the new message
-            cache.writeQuery<GetConversationResponse>({
-              query: conversationOperations.Querries.getConversation,
-              variables: { conversationId: messageId },
-              data: {
-                __typename: "Query",
-                conversation: {
-                  __typename: "Conversation",
-                  ...existingData.conversation,
-                  messages: [...existingData.conversation.messages, newMessage],
-                },
-              },
-            });
-          }
-        }
       },
     }
   );
