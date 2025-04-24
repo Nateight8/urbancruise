@@ -2,6 +2,7 @@ services:
   - type: web
     name: urbancruise-server
     env: node
+    rootDir: server
     buildCommand: pnpm install && pnpm build
     startCommand: pnpm start
     envVars:
