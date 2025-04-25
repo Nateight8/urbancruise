@@ -34,6 +34,8 @@
     "nanoid": "^5.0.9",
     "openai": "^4.77.0",
     "postgres": "^3.4.5",
+    "tsc-alias": "^1.8.15",
+    "typescript": "^5.7.2",
     "ws": "^8.18.1"
   },
   "devDependencies": {
@@ -42,10 +44,8 @@
     "drizzle-kit": "^0.29.1",
     "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.15",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.19.3",
-    "typescript": "^5.7.2"
+    "tsx": "^4.19.3"
   },
   "resolutions": {
     "graphql": "^16.10.0"
