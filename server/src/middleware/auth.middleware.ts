@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { getSession } from "@auth/express";
-import { authConfig } from "@/config/auth.config.js";
+import { authConfig } from "../config/auth.config.js";
 import type { NextFunction, Request, Response } from "express";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "@/db/index.js";
+import { db } from "../db/index.js";
 
 //here for authentication
 export async function authenticatedUser(
