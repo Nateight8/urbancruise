@@ -14,12 +14,28 @@ import { PubSub } from "graphql-subscriptions";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+import type { CorsOptions, CorsRequest } from "cors";
+
 interface MyContext {
   token?: String;
 }
 
-const corsOptions = {
-  origin: process.env.BASE_URL,
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+const corsOptions: CorsOptions = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
 
