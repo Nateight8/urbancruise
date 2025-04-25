@@ -73,8 +73,7 @@ const userResolvers = {
       const lowercaseUsername = username.toLowerCase();
 
       const existingUser = await db.query.users.findFirst({
-        where: (users: typeof schema.users) =>
-          sql`LOWER(${users.username}) = ${lowercaseUsername}`,
+        where: (users) => sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
 
       return !existingUser;
@@ -183,8 +182,7 @@ const userResolvers = {
       try {
         // Check if username is already taken using case-insensitive comparison
         const existingUser = await db.query.users.findFirst({
-          where: (u: typeof schema.users) =>
-            sql`LOWER(${u.username}) = ${lowercaseUsername}`,
+          where: (u) => sql`LOWER(${u.username}) = ${lowercaseUsername}`,
         });
 
         if (existingUser) {
@@ -197,8 +195,7 @@ const userResolvers = {
 
         // Get the user's current record
         const currentUser = await db.query.users.findFirst({
-          where: (u: typeof schema.users) =>
-            eq(u.email, session.user!.email as string),
+          where: (u) => eq(u.email, session.user!.email as string),
         });
 
         if (!currentUser) {
