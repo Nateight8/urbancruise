@@ -13,7 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createHash } from "crypto";
-import { users } from "./auth";
+import { users } from "./auth.js";
 
 // Define message status enum
 export const messageStatusEnum = pgEnum("message_status", [
