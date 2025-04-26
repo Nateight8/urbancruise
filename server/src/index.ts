@@ -13,15 +13,11 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import type { CorsOptions, CorsRequest } from "cors";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-// --- Passport.js and session imports ---
-import session from "express-session";
+// --- Modular auth imports ---
+import { sessionMiddleware } from "./auth/session";
+import { setupPassport } from "./auth/passport";
+import { registerAuthRoutes } from "./auth/routes";
 import passport from "passport";
-import {
-  Strategy as GoogleStrategy,
-  Profile as GoogleProfile,
-  VerifyCallback,
-} from "passport-google-oauth20";
-import type { Request } from "express";
 import "dotenv/config";
 
 interface MyContext {
@@ -50,93 +46,12 @@ const corsOptions: CorsOptions = {
 const app = express();
 const httpServer = http.createServer(app);
 
-// --- Session middleware (must be before passport) ---
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "supersecret", // Change in production
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }, // Set to true if using HTTPS
-  })
-);
-
-// --- Passport.js setup ---
+// --- Auth setup ---
+setupPassport();
+app.use(sessionMiddleware());
 app.use(passport.initialize());
 app.use(passport.session());
-
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.AUTH_GOOGLE_ID || "",
-      clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
-      callbackURL:
-        process.env.GOOGLE_CALLBACK_URL ||
-        "http://localhost:4000/auth/google/callback",
-    },
-    async (
-      accessToken: string,
-      refreshToken: string,
-      profile: GoogleProfile,
-      done: VerifyCallback
-    ) => {
-      // TODO: Find or create user in your DB here if desired
-      // For now, just use the Google profile
-      return done(null, profile);
-    }
-  )
-);
-
-passport.serializeUser(
-  (user: Express.User, done: (err: any, id?: unknown) => void) => {
-    done(null, user);
-  }
-);
-
-passport.deserializeUser(
-  (
-    obj: Express.User,
-    done: (err: any, user?: Express.User | false | null) => void
-  ) => {
-    done(null, obj);
-  }
-);
-
-// --- Auth routes ---
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-
-app.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => {
-    // Successful authentication, redirect to frontend
-    const frontendUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://urbancruise.vercel.app"
-        : "http://localhost:3000";
-    res.redirect(frontendUrl);
-  }
-);
-
-app.get("/logout", (req, res, next) => {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    const frontendUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://urbancruise.vercel.app"
-        : "http://localhost:3000";
-    res.redirect(frontendUrl);
-  });
-});
-
-// --- Debug endpoint to check session/user ---
-app.get("/api/me", (req, res) => {
-  res.json({ user: req.user, session: req.session });
-});
+registerAuthRoutes(app);
 
 // Create a PubSub instance
 const pubsub = new PubSub();
@@ -184,20 +99,12 @@ const server = new ApolloServer<MyContext>({
   ],
 });
 
-// Only apply currentSession, cors, express.json, etc. to /graphql
+// Only apply CORS, express.json, etc. to /graphql
 async function startServer() {
   await server.start();
 
   app.use(
     "/graphql",
-    session({
-      secret: process.env.SESSION_SECRET || "supersecret", // Change in production
-      resave: false,
-      saveUninitialized: false,
-      cookie: { secure: false }, // Set to true if using HTTPS
-    }),
-    passport.initialize(),
-    passport.session(),
     cors(corsOptions),
     express.json(),
     expressMiddleware(server, {
