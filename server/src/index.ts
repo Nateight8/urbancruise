@@ -12,12 +12,11 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import type { CorsOptions, CorsRequest } from "cors";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 // --- Modular auth imports ---
-import { sessionMiddleware } from "./auth/session";
 import { setupPassport } from "./auth/passport";
 import { registerAuthRoutes } from "./auth/routes";
 import passport from "passport";
+import session from "express-session";
 import "dotenv/config";
 
 interface MyContext {
@@ -48,7 +47,14 @@ const httpServer = http.createServer(app);
 
 // --- Auth setup ---
 setupPassport();
-app.use(sessionMiddleware());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "supersecret", // Change in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 registerAuthRoutes(app);
@@ -110,7 +116,7 @@ async function startServer() {
     expressMiddleware(server, {
       context: async ({ req, res }) => {
         const session = req.user || null;
-        console.log("session:", session);
+        console.log("session from index.ts:", session);
         return { db, session, pubsub };
       },
     })

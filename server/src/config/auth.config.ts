@@ -1,12 +1,9 @@
-import Google from "@auth/express/providers/google";
-import google from "@auth/express/providers/google";
-
 const isProd = process.env.NODE_ENV === "production";
 
 //authconfig
 export const authConfig = {
   trustHost: true,
-  providers: [Google],
+  providers: [],
   session: {
     strategy: "database" as const,
     cookies: {

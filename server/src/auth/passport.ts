@@ -8,6 +8,7 @@ import "dotenv/config";
 import { db } from "../db/index";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { Snowflake } from "@theinternetfolks/snowflake";
 
 export function setupPassport() {
   passport.use(
@@ -46,6 +47,7 @@ export function setupPassport() {
             name: profile.displayName,
             email,
             image: profile.photos?.[0]?.value,
+            participantId: Snowflake.generate(),
             // Optional fields are left undefined
           };
 

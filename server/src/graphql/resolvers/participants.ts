@@ -18,7 +18,7 @@ export const participantsResolvers = {
       context: GraphqlContext
     ) => {
       const { db, session } = context;
-      const user = session?.user;
+      const user = session;
 
       if (!user?.id) {
         throw new GraphQLError("Unauthorized", {

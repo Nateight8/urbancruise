@@ -37,7 +37,7 @@ export const conversationResolvers = {
       context: GraphqlContext
     ) => {
       const { db, session } = context;
-      const user = session?.user;
+      const user = session;
 
       // Check if user is a participant
       const participation = await db.query.conversationParticipants.findFirst({
@@ -108,7 +108,7 @@ export const conversationResolvers = {
     ): Promise<boolean> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError("Unauthorized", {
@@ -161,7 +161,7 @@ export const conversationResolvers = {
     ): Promise<boolean> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError("Unauthorized", {
@@ -274,7 +274,7 @@ export const conversationResolvers = {
     ): Promise<SendMessageResponse> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError(
