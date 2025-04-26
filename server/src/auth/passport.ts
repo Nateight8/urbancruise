@@ -5,6 +5,9 @@ import {
   VerifyCallback,
 } from "passport-google-oauth20";
 import "dotenv/config";
+import { db } from "../db/index";
+import { users } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export function setupPassport() {
   passport.use(
@@ -22,9 +25,41 @@ export function setupPassport() {
         profile: GoogleProfile,
         done: VerifyCallback
       ) => {
-        // TODO: Find or create user in your DB here if desired
-        // For now, just use the Google profile
-        return done(null, profile);
+        try {
+          // Find user by Google profile id
+          const googleId = profile.id;
+          const existingUser = await db.query.users.findFirst({
+            where: (u) => eq(u.id, googleId),
+          });
+
+          if (existingUser) {
+            return done(null, existingUser);
+          }
+
+          // Create new user with required fields
+          const email = profile.emails?.[0]?.value;
+          if (!email)
+            return done(new Error("No email found in Google profile"));
+
+          const newUser = {
+            id: googleId,
+            name: profile.displayName,
+            email,
+            image: profile.photos?.[0]?.value,
+            // Optional fields are left undefined
+          };
+
+          await db.insert(users).values(newUser);
+
+          // Fetch and return the created user
+          const createdUser = await db.query.users.findFirst({
+            where: (u) => eq(u.id, googleId),
+          });
+
+          return done(null, createdUser);
+        } catch (err) {
+          return done(err as Error);
+        }
       }
     )
   );
