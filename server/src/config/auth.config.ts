@@ -1,4 +1,5 @@
 import Google from "@auth/express/providers/google";
+import google from "@auth/express/providers/google";
 
 const isProd = process.env.NODE_ENV === "production";
 
