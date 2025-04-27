@@ -23,7 +23,12 @@ interface MyContext {
   token?: String;
 }
 
-const allowedOrigins = (process.env.CORS_ORIGINS || "")
+const isProduction = process.env.NODE_ENV === "production";
+
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ||
+  (isProduction ? "https://urbancruise.vercel.app" : "http://localhost:3000")
+)
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
@@ -52,7 +57,10 @@ app.use(
     secret: process.env.SESSION_SECRET || "supersecret", // Change in production
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to true if using HTTPS
+    cookie: {
+      secure: isProduction, // true in production (HTTPS)
+      sameSite: isProduction ? "none" : "lax", // 'none' for cross-site in prod, 'lax' for dev
+    },
   })
 );
 app.use(passport.initialize());
