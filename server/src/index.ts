@@ -18,7 +18,6 @@ import { registerAuthRoutes } from "./auth/routes.js";
 import passport from "passport";
 import session from "express-session";
 import "dotenv/config";
-import "./types/express";
 
 interface MyContext {
   token?: String;
