@@ -6,29 +6,67 @@ import http from "http";
 import cors from "cors";
 import resolvers from "./graphql/resolvers/index.js";
 import typeDefs from "./graphql/typeDefs/index.js";
+<<<<<<< HEAD
+=======
 import { ExpressAuth, getSession } from "@auth/express";
 import { authConfig } from "./config/auth.config.js";
 import { currentSession } from "./middleware/auth.middleware.js";
+>>>>>>> origin/main
 import { db } from "./db/index.js";
 import { PubSub } from "graphql-subscriptions";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+<<<<<<< HEAD
+import type { CorsOptions, CorsRequest } from "cors";
+// --- Modular auth imports ---
+import { setupPassport } from "./auth/passport.js";
+import { registerAuthRoutes } from "./auth/routes.js";
+import passport from "passport";
+import session from "express-session";
+import "dotenv/config";
+=======
+>>>>>>> origin/main
 
 interface MyContext {
   token?: String;
 }
 
-const corsOptions = {
-  origin: process.env.BASE_URL,
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+const corsOptions: CorsOptions = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
 
 const app = express();
 const httpServer = http.createServer(app);
 
-// Set session in res.locals
-app.use(currentSession);
+// --- Auth setup ---
+setupPassport();
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "supersecret", // Change in production
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+registerAuthRoutes(app);
 
 // Create a PubSub instance
 const pubsub = new PubSub();
@@ -38,10 +76,6 @@ const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
-
-// Set up ExpressAuth to handle authentication
-// IMPORTANT: It is highly encouraged set up rate limiting on this route
-app.use("/api/auth/*", ExpressAuth(authConfig));
 
 // Set up WebSocket server for subscriptions
 const wsServer = new WebSocketServer({
@@ -80,14 +114,20 @@ const server = new ApolloServer<MyContext>({
   ],
 });
 
+// Only apply CORS, express.json, etc. to /graphql
 async function startServer() {
   await server.start();
 
   app.use(
     "/graphql",
-    cors<cors.CorsRequest>(corsOptions),
+    cors(corsOptions),
     express.json(),
     expressMiddleware(server, {
+<<<<<<< HEAD
+      context: async ({ req, res }) => {
+        const session = req.user || null;
+        console.log("session from index.ts:", session);
+=======
       context: async ({
         req,
         res,
@@ -98,6 +138,7 @@ async function startServer() {
         const session = res.locals.session || null;
 
         console.log("session:", session);
+>>>>>>> origin/main
         return { db, session, pubsub };
       },
     })

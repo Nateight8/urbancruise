@@ -5,9 +5,15 @@ import {
   conversationParticipants,
   messages,
   users,
+<<<<<<< HEAD
+} from "../../db/schema/index.js";
+import * as schema from "../../db/schema/index.js";
+import GraphqlContext from "../../types/types.utils.js";
+=======
 } from "../../db/schema";
 import * as schema from "../../db/schema";
 import GraphqlContext from "../../types/types.utils";
+>>>>>>> origin/main
 import { GraphQLError } from "graphql";
 import { withFilter } from "graphql-subscriptions";
 
@@ -37,7 +43,7 @@ export const conversationResolvers = {
       context: GraphqlContext
     ) => {
       const { db, session } = context;
-      const user = session?.user;
+      const user = session;
 
       // Check if user is a participant
       const participation = await db
@@ -111,7 +117,7 @@ export const conversationResolvers = {
     ): Promise<boolean> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError("Unauthorized", {
@@ -164,7 +170,7 @@ export const conversationResolvers = {
     ): Promise<boolean> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError("Unauthorized", {
@@ -277,7 +283,7 @@ export const conversationResolvers = {
     ): Promise<SendMessageResponse> => {
       try {
         const { db, session, pubsub } = context;
-        const user = session?.user;
+        const user = session;
 
         if (!user?.id) {
           throw new GraphQLError(

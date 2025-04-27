@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+import { User, users } from "../../db/schema/auth.js";
+import GraphqlContext from "../../types/types.utils.js";
+import { eq, sql, ne } from "drizzle-orm";
+import { GraphQLError } from "graphql";
+import { UserProfileInput } from "../typeDefs/user.js";
+=======
 import { User, users } from "../../db/schema/auth";
 import GraphqlContext, { UserInput } from "../../types/types.utils.js";
 import { eq, sql, ne } from "drizzle-orm";
@@ -5,15 +12,15 @@ import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
 import * as schema from "../../db/schema/auth.js";
 import { Snowflake } from "@theinternetfolks/snowflake";
+>>>>>>> origin/main
 
 const userResolvers = {
   Query: {
     // Get logged in user
     getLoggedInUser: async (_: any, __: any, context: GraphqlContext) => {
       const { db, session } = context;
-      const { user: loggedInUser } = session;
-
-      if (!loggedInUser?.id) {
+      console.log("session in resolver:", session);
+      if (!session?.id) {
         console.error("User not authenticated, session data:", session);
         throw new GraphQLError("Not authenticated", {
           extensions: {
@@ -26,7 +33,7 @@ const userResolvers = {
         const userRecord = await db
           .select()
           .from(users)
-          .where(eq(users.id, loggedInUser.id));
+          .where(eq(users.id, session.id));
 
         const user = userRecord[0];
 
@@ -44,9 +51,15 @@ const userResolvers = {
     getAllUsers: async (_: any, __: any, { session, db }: GraphqlContext) => {
       try {
         // Create a query that conditionally excludes the logged-in user if a session exists
+<<<<<<< HEAD
+        const allUsers = await db.query.users.findMany({
+          where: session?.id ? ne(users.id, session.id) : undefined,
+        });
+=======
         const allUsers = session?.user?.id
           ? await db.select().from(users).where(ne(users.id, session.user.id))
           : await db.select().from(users);
+>>>>>>> origin/main
 
         return {
           status: 200,
@@ -72,11 +85,17 @@ const userResolvers = {
       const { db } = context;
       const lowercaseUsername = username.toLowerCase();
 
+<<<<<<< HEAD
+      const existingUser = await db.query.users.findFirst({
+        where: (users) => sql`LOWER(${users.username}) = ${lowercaseUsername}`,
+      });
+=======
       const existingUser = await db
         .select()
         .from(users)
         .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
         .limit(1);
+>>>>>>> origin/main
 
       return existingUser.length === 0;
     },
@@ -91,7 +110,7 @@ const userResolvers = {
       const { db, session } = context;
 
       // 1. Ensure the user is authenticated
-      if (!session || !session.user?.id) {
+      if (!session?.id) {
         throw new GraphQLError("Not authenticated", {
           extensions: {
             code: "UNAUTHENTICATED",
@@ -100,7 +119,7 @@ const userResolvers = {
         });
       }
 
-      const userId = session.user.id;
+      const userId = session.id;
 
       try {
         // 2. Check if the user exists
@@ -173,7 +192,7 @@ const userResolvers = {
 
       const lowercaseUsername = username.toLowerCase();
 
-      if (!session || !session.user) {
+      if (!session?.id) {
         return {
           success: false,
           message: "Not authenticated",
@@ -183,11 +202,17 @@ const userResolvers = {
 
       try {
         // Check if username is already taken using case-insensitive comparison
+<<<<<<< HEAD
+        const existingUser = await db.query.users.findFirst({
+          where: (u) => sql`LOWER(${u.username}) = ${lowercaseUsername}`,
+        });
+=======
         const existingUser = await db
           .select()
           .from(users)
           .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
           .limit(1);
+>>>>>>> origin/main
 
         if (existingUser.length > 0) {
           return {
@@ -198,11 +223,17 @@ const userResolvers = {
         }
 
         // Get the user's current record
+<<<<<<< HEAD
+        const currentUser = await db.query.users.findFirst({
+          where: (u) => eq(u.email, session.email as string),
+        });
+=======
         const currentUser = await db
           .select()
           .from(users)
           .where(eq(users.email, session.user!.email as string))
           .limit(1);
+>>>>>>> origin/main
 
         if (currentUser.length === 0) {
           return {
@@ -218,9 +249,8 @@ const userResolvers = {
           .set({
             username: lowercaseUsername,
             onboardingCompleted: true,
-            participantId: Snowflake.generate(),
           })
-          .where(eq(users.email, session.user!.email as string))
+          .where(eq(users.email, session.email as string))
           .returning();
 
         return {
