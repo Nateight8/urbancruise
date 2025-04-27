@@ -7,9 +7,17 @@ import userOperations from "@/graphql/operations/user-operations";
 import { useQuery } from "@apollo/client";
 
 export default function Home() {
-  const { data: loggedInUser } = useQuery(
+  const { data: loggedInUser, loading } = useQuery(
     userOperations.Querries.getLoggedInUser
   );
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   // // Check if we have any data at all
   if (!loggedInUser?.getLoggedInUser) {
