@@ -12,7 +12,8 @@
     "outDir": "./dist",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "typeRoots": ["./src/types", "./node_modules/@types"]
   },
   "ts-node": {
     "esm": true,
