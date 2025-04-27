@@ -13,8 +13,8 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import type { CorsOptions, CorsRequest } from "cors";
 // --- Modular auth imports ---
-import { setupPassport } from "./auth/passport";
-import { registerAuthRoutes } from "./auth/routes";
+import { setupPassport } from "./auth/passport.js";
+import { registerAuthRoutes } from "./auth/routes.js";
 import passport from "passport";
 import session from "express-session";
 import "dotenv/config";

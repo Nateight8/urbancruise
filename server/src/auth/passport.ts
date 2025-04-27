@@ -5,8 +5,8 @@ import {
   VerifyCallback,
 } from "passport-google-oauth20";
 import "dotenv/config";
-import { db } from "../db/index";
-import { users } from "../db/schema";
+import { db } from "../db/index.js";
+import { users } from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
 import { Snowflake } from "@theinternetfolks/snowflake";
 
