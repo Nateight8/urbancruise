@@ -48,6 +48,12 @@ const corsOptions: CorsOptions = {
 };
 
 const app = express();
+
+// Trust proxy in production for correct cookie handling
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
 const httpServer = http.createServer(app);
 
 // --- Auth setup ---
