@@ -1,4 +1,4 @@
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import passport from "passport";
 
 export function registerAuthRoutes(app: Express) {
@@ -12,7 +12,7 @@ export function registerAuthRoutes(app: Express) {
   app.get(
     "/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/" }),
-    (req, res) => {
+    (req: Request, res: Response) => {
       const frontendUrl =
         process.env.NODE_ENV === "production"
           ? "https://urbancruise.vercel.app"
@@ -22,8 +22,8 @@ export function registerAuthRoutes(app: Express) {
   );
 
   // Logout
-  app.get("/logout", (req, res, next) => {
-    req.logout(function (err) {
+  app.get("/logout", (req: Request, res: Response, next: NextFunction) => {
+    req.logout(function (err: any) {
       if (err) {
         return next(err);
       }
@@ -36,7 +36,7 @@ export function registerAuthRoutes(app: Express) {
   });
 
   // Debug endpoint to check session/user
-  app.get("/api/me", (req, res) => {
+  app.get("/api/me", (req: Request, res: Response) => {
     res.json({ user: req.user, session: req.session });
   });
 }

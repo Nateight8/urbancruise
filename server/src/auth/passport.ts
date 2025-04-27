@@ -34,7 +34,14 @@ export function setupPassport() {
           });
 
           if (existingUser) {
-            return done(null, existingUser);
+            // Map all null fields to undefined for compatibility
+            const sanitizedUser = Object.fromEntries(
+              Object.entries(existingUser).map(([k, v]) => [
+                k,
+                v === null ? undefined : v,
+              ])
+            );
+            return done(null, sanitizedUser as any);
           }
 
           // Create new user with required fields
@@ -44,9 +51,9 @@ export function setupPassport() {
 
           const newUser = {
             id: googleId,
-            name: profile.displayName,
+            name: profile.displayName || undefined,
             email,
-            image: profile.photos?.[0]?.value,
+            image: profile.photos?.[0]?.value || undefined,
             participantId: Snowflake.generate(),
             // Optional fields are left undefined
           };
@@ -58,7 +65,17 @@ export function setupPassport() {
             where: (u) => eq(u.id, googleId),
           });
 
-          return done(null, createdUser);
+          // Map all null fields to undefined for compatibility
+          const sanitizedCreatedUser = createdUser
+            ? Object.fromEntries(
+                Object.entries(createdUser).map(([k, v]) => [
+                  k,
+                  v === null ? undefined : v,
+                ])
+              )
+            : undefined;
+
+          return done(null, sanitizedCreatedUser as any);
         } catch (err) {
           return done(err as Error);
         }
@@ -67,16 +84,13 @@ export function setupPassport() {
   );
 
   passport.serializeUser(
-    (user: Express.User, done: (err: any, id?: unknown) => void) => {
+    (user: any, done: (err: any, id?: unknown) => void) => {
       done(null, user);
     }
   );
 
   passport.deserializeUser(
-    (
-      obj: Express.User,
-      done: (err: any, user?: Express.User | false | null) => void
-    ) => {
+    (obj: any, done: (err: any, user?: any | false | null) => void) => {
       done(null, obj);
     }
   );
