@@ -13,10 +13,6 @@ export function registerAuthRoutes(app: Express) {
     "/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/" }),
     (req: Request, res: Response) => {
-      console.log("After Google callback:", {
-        user: req.user,
-        session: req.session,
-      });
       const frontendUrl =
         process.env.NODE_ENV === "production"
           ? "https://urbancruise.vercel.app"
