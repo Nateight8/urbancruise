@@ -11,17 +11,17 @@ export default function Home() {
     userOperations.Querries.getLoggedInUser
   );
 
-  // Check if we have any data at all
+  // // Check if we have any data at all
   if (!loggedInUser?.getLoggedInUser) {
     return <AuthenticationScreen />;
   }
 
-  // Check if we have a user object
+  // // Check if we have a user object
   if (!loggedInUser.getLoggedInUser.user) {
     return <UsernameForm />;
   }
 
-  // Check if username is null or undefined
+  // // Check if username is null or undefined
   if (!loggedInUser.getLoggedInUser.user.username) {
     return <UsernameForm />;
   }
