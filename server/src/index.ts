@@ -25,11 +25,8 @@ interface MyContext {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const allowedOrigins = (
-  process.env.CORS_ORIGINS ||
-  (isProduction ? "https://urbancruise.vercel.app" : "http://localhost:3000")
-)
-  .split(",")
+const allowedOrigins = process.env
+  .CORS_ORIGINS!.split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
