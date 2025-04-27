@@ -32,8 +32,10 @@ interface MyContext {
   token?: String;
 }
 
-const allowedOrigins = (process.env.CORS_ORIGINS || "")
-  .split(",")
+const isProduction = process.env.NODE_ENV === "production";
+
+const allowedOrigins = process.env
+  .CORS_ORIGINS!.split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
@@ -52,6 +54,12 @@ const corsOptions: CorsOptions = {
 };
 
 const app = express();
+
+// Trust proxy in production for correct cookie handling
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
 const httpServer = http.createServer(app);
 
 // --- Auth setup ---
@@ -61,7 +69,10 @@ app.use(
     secret: process.env.SESSION_SECRET || "supersecret", // Change in production
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Set to true if using HTTPS
+    cookie: {
+      secure: isProduction, // true in production (HTTPS)
+      sameSite: isProduction ? "none" : "lax", // 'none' for cross-site in prod, 'lax' for dev
+    },
   })
 );
 app.use(passport.initialize());
