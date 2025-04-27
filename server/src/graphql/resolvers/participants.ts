@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import * as schema from "../../db/schema/index.js";
 import { conversationParticipants } from "../../db/schema/conversation.js";
 import GraphqlContext from "../../types/types.utils.js";
+=======
+import * as schema from "../../db/schema";
+import { conversationParticipants } from "../../db/schema/conversation";
+import GraphqlContext from "../../types/types.utils";
+>>>>>>> origin/main
 import { GraphQLError } from "graphql";
 import { eq, ne, desc } from "drizzle-orm";
 import { withFilter } from "graphql-subscriptions";

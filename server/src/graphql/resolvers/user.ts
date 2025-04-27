@@ -1,8 +1,18 @@
+<<<<<<< HEAD
 import { User, users } from "../../db/schema/auth.js";
 import GraphqlContext from "../../types/types.utils.js";
 import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
+=======
+import { User, users } from "../../db/schema/auth";
+import GraphqlContext, { UserInput } from "../../types/types.utils.js";
+import { eq, sql, ne } from "drizzle-orm";
+import { GraphQLError } from "graphql";
+import { UserProfileInput } from "../typeDefs/user.js";
+import * as schema from "../../db/schema/auth.js";
+import { Snowflake } from "@theinternetfolks/snowflake";
+>>>>>>> origin/main
 
 const userResolvers = {
   Query: {
@@ -41,9 +51,15 @@ const userResolvers = {
     getAllUsers: async (_: any, __: any, { session, db }: GraphqlContext) => {
       try {
         // Create a query that conditionally excludes the logged-in user if a session exists
+<<<<<<< HEAD
         const allUsers = await db.query.users.findMany({
           where: session?.id ? ne(users.id, session.id) : undefined,
         });
+=======
+        const allUsers = session?.user?.id
+          ? await db.select().from(users).where(ne(users.id, session.user.id))
+          : await db.select().from(users);
+>>>>>>> origin/main
 
         return {
           status: 200,
@@ -69,11 +85,19 @@ const userResolvers = {
       const { db } = context;
       const lowercaseUsername = username.toLowerCase();
 
+<<<<<<< HEAD
       const existingUser = await db.query.users.findFirst({
         where: (users) => sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
+=======
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
+        .limit(1);
+>>>>>>> origin/main
 
-      return !existingUser;
+      return existingUser.length === 0;
     },
   },
 
@@ -178,11 +202,19 @@ const userResolvers = {
 
       try {
         // Check if username is already taken using case-insensitive comparison
+<<<<<<< HEAD
         const existingUser = await db.query.users.findFirst({
           where: (u) => sql`LOWER(${u.username}) = ${lowercaseUsername}`,
         });
+=======
+        const existingUser = await db
+          .select()
+          .from(users)
+          .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
+          .limit(1);
+>>>>>>> origin/main
 
-        if (existingUser) {
+        if (existingUser.length > 0) {
           return {
             success: false,
             message: "Username already taken",
@@ -191,11 +223,19 @@ const userResolvers = {
         }
 
         // Get the user's current record
+<<<<<<< HEAD
         const currentUser = await db.query.users.findFirst({
           where: (u) => eq(u.email, session.email as string),
         });
+=======
+        const currentUser = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, session.user!.email as string))
+          .limit(1);
+>>>>>>> origin/main
 
-        if (!currentUser) {
+        if (currentUser.length === 0) {
           return {
             success: false,
             message: "User not found",

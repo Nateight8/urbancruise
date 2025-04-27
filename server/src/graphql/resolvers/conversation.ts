@@ -5,9 +5,15 @@ import {
   conversationParticipants,
   messages,
   users,
+<<<<<<< HEAD
 } from "../../db/schema/index.js";
 import * as schema from "../../db/schema/index.js";
 import GraphqlContext from "../../types/types.utils.js";
+=======
+} from "../../db/schema";
+import * as schema from "../../db/schema";
+import GraphqlContext from "../../types/types.utils";
+>>>>>>> origin/main
 import { GraphQLError } from "graphql";
 import { withFilter } from "graphql-subscriptions";
 
@@ -40,58 +46,61 @@ export const conversationResolvers = {
       const user = session;
 
       // Check if user is a participant
-      const participation = await db.query.conversationParticipants.findFirst({
-        where: and(
-          eq(conversationParticipants.userId, user?.id || ""),
-          eq(conversationParticipants.conversationId, args.id),
-          isNull(conversationParticipants.leftAt)
-        ),
-      });
+      const participation = await db
+        .select()
+        .from(conversationParticipants)
+        .where(
+          and(
+            eq(conversationParticipants.userId, user?.id || ""),
+            eq(conversationParticipants.conversationId, args.id),
+            isNull(conversationParticipants.leftAt)
+          )
+        )
+        .limit(1);
 
-      if (!participation) {
+      if (participation.length === 0) {
         throw new Error("Conversation not found or user is not a participant");
       }
 
-      const conversation = await db.query.conversations.findFirst({
-        where: eq(conversations.id, args.id),
-        with: {
-          messages: {
-            orderBy: (messages) => [asc(messages.createdAt)],
-            with: {
-              sender: {
-                columns: {
-                  id: true,
-                  username: true,
-                  image: true,
-                },
-              },
-            },
-          },
+      // Get conversation with messages and participants
+      const results = await db
+        .select({
+          id: conversations.id,
+          isGroup: conversations.isGroup,
+          isDraft: conversations.isDraft,
+          lastMessageAt: conversations.lastMessageAt,
+          messages: messages,
           participants: {
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  username: true,
-                  image: true,
-                },
-              },
-            },
+            id: users.id,
+            username: users.username,
+            image: users.image,
           },
-        },
-      });
+        })
+        .from(conversations)
+        .where(eq(conversations.id, args.id))
+        .leftJoin(messages, eq(messages.conversationId, conversations.id))
+        .leftJoin(
+          conversationParticipants,
+          eq(conversationParticipants.conversationId, conversations.id)
+        )
+        .leftJoin(users, eq(users.id, conversationParticipants.userId))
+        .orderBy(asc(messages.createdAt));
 
-      if (!conversation) {
+      if (results.length === 0) {
         throw new GraphQLError("Conversation not found", {
           extensions: { code: "NOT_FOUND" },
         });
       }
 
+      const conversation = results[0];
+
       // Map message status to uppercase for GraphQL enum
-      const messagesWithMappedStatus = conversation.messages.map((message) => ({
-        ...message,
-        status: mapStatusToEnum(message.status),
-      }));
+      const messagesWithMappedStatus = conversation.messages
+        ? [conversation.messages].map((message) => ({
+            ...message,
+            status: mapStatusToEnum(message.status),
+          }))
+        : [];
 
       // Return conversation with mapped message statuses
       return {
@@ -313,9 +322,10 @@ export const conversationResolvers = {
         // Step 4: Query the users table to get the user details for each participantId
         let participants;
         try {
-          participants = await db.query.users.findMany({
-            where: (users) => sql`${users.participantId} IN ${sortedIds}`,
-          });
+          participants = await db
+            .select()
+            .from(users)
+            .where(sql`${users.participantId} IN ${sortedIds}`);
         } catch (dbError) {
           console.error("Database error querying participants:", dbError);
           throw new GraphQLError("Whoops, couldn't find your squad! 🧐", {
@@ -335,9 +345,7 @@ export const conversationResolvers = {
         }
 
         // Find the current user's record based on their user.id
-        const currentUserRecord = participants.find(
-          (p: typeof schema.users.$inferSelect) => p.id === user.id
-        );
+        const currentUserRecord = participants.find((p) => p.id === user.id);
         if (!currentUserRecord) {
           throw new GraphQLError("You ain't part of this squad, fam! 🤔", {
             extensions: { code: "BAD_USER_INPUT" },
@@ -347,9 +355,12 @@ export const conversationResolvers = {
         // Step 5: Check if conversation exists
         let convo;
         try {
-          convo = await db.query.conversations.findFirst({
-            where: eq(conversations.id, vibeId),
-          });
+          const results = await db
+            .select()
+            .from(conversations)
+            .where(eq(conversations.id, vibeId))
+            .limit(1);
+          convo = results[0];
         } catch (dbError) {
           console.error("Database error querying conversation:", dbError);
           throw new GraphQLError(
@@ -377,12 +388,10 @@ export const conversationResolvers = {
             convo = newConvo;
 
             // Add participants to the convo
-            const squad = participants.map(
-              (participant: typeof schema.users.$inferSelect) => ({
-                userId: participant.id,
-                conversationId: vibeId,
-              })
-            );
+            const squad = participants.map((participant) => ({
+              userId: participant.id,
+              conversationId: vibeId,
+            }));
 
             await db.insert(conversationParticipants).values(squad);
           } catch (dbError) {
@@ -396,31 +405,25 @@ export const conversationResolvers = {
           }
         } else {
           // If conversation exists
-          const existingParticipants =
-            await db.query.conversationParticipants.findMany({
-              where: eq(conversationParticipants.conversationId, vibeId),
-            });
+          const existingParticipants = await db
+            .select()
+            .from(conversationParticipants)
+            .where(eq(conversationParticipants.conversationId, vibeId));
 
           const existingParticipantIds = new Set(
-            existingParticipants.map(
-              (p: typeof schema.conversationParticipants.$inferSelect) =>
-                p.userId
-            )
+            existingParticipants.map((p) => p.userId)
           );
 
           const missingParticipants = participants.filter(
-            (p: typeof schema.users.$inferSelect) =>
-              !existingParticipantIds.has(p.id)
+            (p) => !existingParticipantIds.has(p.id)
           );
 
           // Add any missing participants
           if (missingParticipants.length > 0) {
-            const newEntries = missingParticipants.map(
-              (p: typeof schema.users.$inferSelect) => ({
-                userId: p.id,
-                conversationId: vibeId,
-              })
-            );
+            const newEntries = missingParticipants.map((p) => ({
+              userId: p.id,
+              conversationId: vibeId,
+            }));
             await db.insert(conversationParticipants).values(newEntries);
           }
         }
@@ -499,8 +502,7 @@ export const conversationResolvers = {
           for (const participantId of otherParticipantIds) {
             // Find the participant's user record
             const participantUser = participants.find(
-              (p: typeof schema.users.$inferSelect) =>
-                p.participantId === participantId
+              (p) => p.participantId === participantId
             );
 
             if (participantUser) {

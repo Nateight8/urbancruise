@@ -9,7 +9,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-// import type { AdapterAccount } from "@auth/core/adapters";
+import type { AdapterAccount } from "@auth/core/adapters";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 

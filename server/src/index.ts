@@ -6,11 +6,18 @@ import http from "http";
 import cors from "cors";
 import resolvers from "./graphql/resolvers/index.js";
 import typeDefs from "./graphql/typeDefs/index.js";
+<<<<<<< HEAD
+=======
+import { ExpressAuth, getSession } from "@auth/express";
+import { authConfig } from "./config/auth.config.js";
+import { currentSession } from "./middleware/auth.middleware.js";
+>>>>>>> origin/main
 import { db } from "./db/index.js";
 import { PubSub } from "graphql-subscriptions";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+<<<<<<< HEAD
 import type { CorsOptions, CorsRequest } from "cors";
 // --- Modular auth imports ---
 import { setupPassport } from "./auth/passport.js";
@@ -18,6 +25,8 @@ import { registerAuthRoutes } from "./auth/routes.js";
 import passport from "passport";
 import session from "express-session";
 import "dotenv/config";
+=======
+>>>>>>> origin/main
 
 interface MyContext {
   token?: String;
@@ -114,20 +123,32 @@ async function startServer() {
     cors(corsOptions),
     express.json(),
     expressMiddleware(server, {
+<<<<<<< HEAD
       context: async ({ req, res }) => {
         const session = req.user || null;
         console.log("session from index.ts:", session);
+=======
+      context: async ({
+        req,
+        res,
+      }: {
+        req: express.Request;
+        res: express.Response;
+      }) => {
+        const session = res.locals.session || null;
+
+        console.log("session:", session);
+>>>>>>> origin/main
         return { db, session, pubsub };
       },
     })
   );
 
-  await new Promise<void>((resolve) =>
-    httpServer.listen({ port: 4000 }, resolve)
-  );
+  const port = process.env.PORT || 4000;
+  await new Promise<void>((resolve) => httpServer.listen({ port }, resolve));
 
-  console.log(`🚀 Server ready at http://localhost:4000/graphql`);
-  console.log(`🔌 WebSocket server ready at ws://localhost:4000/graphql/ws`);
+  console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
+  console.log(`🔌 WebSocket server ready at ws://localhost:${port}/graphql/ws`);
 }
 
 startServer();
