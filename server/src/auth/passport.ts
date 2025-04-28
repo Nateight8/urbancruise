@@ -29,14 +29,18 @@ export function setupPassport() {
         try {
           // Find user by Google profile id
           const googleId = profile.id;
-          const existingUser = await db.query.users.findFirst({
-            where: (u) => eq(u.id, googleId),
-          });
+          const email = profile.emails?.[0]?.value;
+          if (!email)
+            return done(new Error("No email found in Google profile"));
 
-          if (existingUser) {
+          // Check if a user with this email already exists
+          const existingUserByEmail = await db.query.users.findFirst({
+            where: (u) => eq(u.email, email),
+          });
+          if (existingUserByEmail) {
             // Map all null fields to undefined for compatibility
             const sanitizedUser = Object.fromEntries(
-              Object.entries(existingUser).map(([k, v]) => [
+              Object.entries(existingUserByEmail).map(([k, v]) => [
                 k,
                 v === null ? undefined : v,
               ])
@@ -44,11 +48,7 @@ export function setupPassport() {
             return done(null, sanitizedUser as any);
           }
 
-          // Create new user with required fields
-          const email = profile.emails?.[0]?.value;
-          if (!email)
-            return done(new Error("No email found in Google profile"));
-
+          // Otherwise, create new user
           const newUser = {
             id: googleId,
             name: profile.displayName || undefined,
