@@ -25,6 +25,7 @@
 
 - ✅ Frontend can authenticate and make API requests.
 - **Next:** Ensure all user flows (login, logout, session refresh, error states) are handled gracefully in the UI. Add loading and error states for all network requests.
+  - **Session refresh:** Not required in this session-cookie setup; the session is automatically extended on user activity. If the session expires, prompt the user to log in again.
 
 ### 6. Security
 
@@ -40,20 +41,25 @@
 
 - **Next:** Document your API (GraphQL schema, REST endpoints). Add a README with setup, environment variables, and deployment instructions.
 
+### 9. Remember Me / Persistent Login (Optional)
+
+- **Next:** Consider implementing a "Remember Me" feature for persistent login. This allows users to stay logged in or easily re-authenticate after their session expires, improving user experience. Typically, this is done with a long-lived cookie or token that can re-establish the session when the user returns.
+
 ---
 
 ## MVP Checklist Table
 
-| Area               | Status/Action Needed                            |
-| ------------------ | ----------------------------------------------- |
-| Auth/session       | ✅ Works, consider persistent store             |
-| User management    | Add profile update, deletion, validation        |
-| Authorization      | Protect sensitive queries/mutations             |
-| API/errors         | Standardize error handling, add logging         |
-| Frontend flows     | Ensure all auth/user flows are smooth           |
-| Security           | Check secrets, rate limiting, input validation  |
-| Deployment/monitor | Add health checks, error/performance monitoring |
-| Documentation      | Document API, setup, and deployment             |
+| Area                         | Status/Action Needed                            |
+| ---------------------------- | ----------------------------------------------- |
+| Auth/session                 | ✅ Works, consider persistent store             |
+| User management              | Add profile update, deletion, validation        |
+| Authorization                | Protect sensitive queries/mutations             |
+| API/errors                   | Standardize error handling, add logging         |
+| Frontend flows               | Ensure all auth/user flows are smooth           |
+| Security                     | ✅ CORS, session cookies, and secrets handled   |
+| Deployment/monitor           | Add health checks, error/performance monitoring |
+| Documentation                | Document API, setup, and deployment             |
+| Remember me/persistent login | Consider implementing for user convenience      |
 
 ---
 
@@ -64,6 +70,7 @@
 3. **Add user profile management features** if needed for your MVP.
 4. **Set up monitoring and error logging** for production.
 5. **Document your API and deployment process.**
+6. **(Optional) Implement a 'Remember Me' feature for persistent login.**
 
 ---
 
