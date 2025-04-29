@@ -18,6 +18,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useCachedUser } from "@/hooks/use-cached-user";
+import { useMutation } from "@apollo/client";
+import userOperations from "@/graphql/operations/user-operations";
 
 const formSchema = z.object({
   username: z
@@ -30,9 +32,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ChangeUsername({ onBack }: { onBack: () => void }) {
+  const [updateUsername, { loading }] = useMutation(
+    userOperations.Mutations.updateUsername
+  );
   const cachedUser = useCachedUser();
-
-  console.log("cachedUser from change-un", cachedUser);
 
   const [mounted, setMounted] = useState(false);
   const form = useForm<FormValues>({
@@ -52,8 +55,49 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
     return () => clearTimeout(timer);
   }, []);
 
+  const usernameIsAvailable =
+    form.watch("username") === cachedUser?.username || isAvailable;
+
+  const getStatusMessage = () => {
+    const username = form.watch("username");
+
+    if (!username || username.length < 3) {
+      return null;
+    }
+
+    if (isChecking) {
+      return {
+        text: "Checking...",
+        className: "text-muted-foreground",
+      };
+    }
+
+    if (username === cachedUser?.username) {
+      return {
+        text: "Current username",
+        className: "text-muted-foreground",
+      };
+    }
+
+    if (isAvailable) {
+      return {
+        text: "Available!",
+        className: "text-success",
+      };
+    }
+
+    return {
+      text: "Already taken",
+      className: "text-destructive",
+    };
+  };
+
   const onSubmit = async (data: FormValues) => {
-    console.log(data);
+    await updateUsername({
+      variables: {
+        username: data.username,
+      },
+    });
   };
 
   return (
@@ -90,8 +134,7 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
               className={`${
                 !form.watch("username")
                   ? "text-muted-foreground"
-                  : isAvailable &&
-                    formSchema.safeParse(form.getValues()).success
+                  : usernameIsAvailable
                   ? "text-success"
                   : "text-destructive"
               }`}
@@ -112,7 +155,7 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
               className={`${
                 !form.watch("username")
                   ? "text-muted-foreground"
-                  : isAvailable
+                  : usernameIsAvailable
                   ? "text-success"
                   : "text-destructive"
               }`}
@@ -121,7 +164,7 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
               className={`text-center -mt-4 ${
                 !form.watch("username")
                   ? "text-muted-foreground"
-                  : isAvailable
+                  : usernameIsAvailable
                   ? "text-success"
                   : "text-destructive"
               }`}
@@ -152,21 +195,9 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
                 </div>
                 <div className="text-sm h-6">
                   {field.value.length >= 3 && (
-                    <>
-                      {isChecking ? (
-                        <span className="text-muted-foreground">
-                          Checking...
-                        </span>
-                      ) : field.value === cachedUser?.username ? (
-                        <span className="text-muted-foreground">
-                          Already taken by you
-                        </span>
-                      ) : isAvailable ? (
-                        <span className="text-success">Available!</span>
-                      ) : (
-                        <span className="text-destructive">Already taken</span>
-                      )}
-                    </>
+                    <span className={getStatusMessage()?.className}>
+                      {getStatusMessage()?.text}
+                    </span>
                   )}
                 </div>
               </FormItem>
@@ -174,49 +205,52 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
           />
 
           <AnimatePresence>
-            {form.watch("username").length >= 3 && (
-              <motion.div
-                key="confirmation-bar"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ type: "spring", damping: 10 }}
-                className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
-              >
-                <p className="hidden md:block">
-                  Confirm to set profile URL: urbancruise.com/
-                  <span
-                    className={
-                      !isAvailable ? "text-muted-foreground" : "text-foreground"
-                    }
-                  >
-                    {form.watch("username")}
-                  </span>
-                </p>
+            {form.watch("username").length >= 3 &&
+              cachedUser?.username !== form.watch("username") && (
+                <motion.div
+                  key="confirmation-bar"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ type: "spring", damping: 10 }}
+                  className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
+                >
+                  <p className="hidden md:block">
+                    Confirm to set profile URL: urbancruise.com/
+                    <span
+                      className={
+                        !usernameIsAvailable
+                          ? "text-muted-foreground"
+                          : "text-foreground"
+                      }
+                    >
+                      {form.watch("username")}
+                    </span>
+                  </p>
 
-                <p className="block md:hidden">Save Changes</p>
+                  <p className="block md:hidden">Save Changes</p>
 
-                <div className="space-x-2 space-y-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="bg-transparent"
-                    onClick={() => form.reset()}
-                    type="button"
-                  >
-                    Reset
-                  </Button>
-                  <Button
-                    variant="success"
-                    disabled={!isAvailable}
-                    size="sm"
-                    type="submit"
-                  >
-                    Save Changes
-                  </Button>
-                </div>
-              </motion.div>
-            )}
+                  <div className="space-x-2 space-y-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-transparent"
+                      onClick={() => form.reset()}
+                      type="button"
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      variant="success"
+                      disabled={!usernameIsAvailable}
+                      size="sm"
+                      type="submit"
+                    >
+                      {loading ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
           </AnimatePresence>
         </form>
       </Form>
