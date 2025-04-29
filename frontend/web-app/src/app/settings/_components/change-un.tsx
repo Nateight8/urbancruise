@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useCachedUser } from "@/hooks/use-cached-user";
 
 const formSchema = z.object({
   username: z
@@ -29,11 +30,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ChangeUsername({ onBack }: { onBack: () => void }) {
+  const cachedUser = useCachedUser();
+
+  console.log("cachedUser from change-un", cachedUser);
+
   const [mounted, setMounted] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      username: cachedUser?.username,
     },
   });
 
@@ -152,6 +157,10 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
                         <span className="text-muted-foreground">
                           Checking...
                         </span>
+                      ) : field.value === cachedUser?.username ? (
+                        <span className="text-muted-foreground">
+                          Already taken by you
+                        </span>
                       ) : isAvailable ? (
                         <span className="text-success">Available!</span>
                       ) : (
@@ -172,9 +181,9 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ type: "spring", damping: 10 }}
-                className="fixed left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
+                className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
               >
-                <p>
+                <p className="hidden md:block">
                   Confirm to set profile URL: urbancruise.com/
                   <span
                     className={
@@ -185,7 +194,9 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
                   </span>
                 </p>
 
-                <div className="space-x-2">
+                <p className="block md:hidden">Save Changes</p>
+
+                <div className="space-x-2 space-y-2">
                   <Button
                     size="sm"
                     variant="outline"
