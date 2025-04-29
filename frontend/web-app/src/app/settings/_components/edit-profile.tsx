@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,15 +18,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Preview from "./preview";
-// import UsernameChange from "../account/_components/username-change";
+import { useCachedUser } from "@/hooks/use-cached-user";
+import { useMutation } from "@apollo/client";
+import userOperations from "@/graphql/operations/user-operations";
 
 const FormSchema = z.object({
   displayName: z.string().min(2, {
-    message: "Display Name must be at least 2 characters.",
+    message: "Bot's not allowed",
   }),
-  bio: z.string().min(2, {
-    message: "Bio must be at least 2 characters.",
-  }),
+  bio: z
+    .string()
+    .min(2, {
+      message: "Bio must be at least 2 characters.",
+    })
+    .optional()
+    .or(z.literal("")),
 });
 
 export default function EditProfile({
@@ -34,12 +40,19 @@ export default function EditProfile({
 }: {
   onUsernameEdit: () => void;
 }) {
-  //   const [showUsernameForm, setShowUsernameForm] = useState(false);
+  const [updateUser, { loading }] = useMutation(
+    userOperations.Mutations.updateUser
+  );
   const [mounted, setMounted] = useState(false);
+  const displayNameInputRef = useRef<HTMLInputElement>(null);
+  const bioInputRef = useRef<HTMLTextAreaElement>(null);
+  const cachedUser = useCachedUser();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      displayName: "",
+      displayName: cachedUser?.displayName || cachedUser?.name,
+      bio: cachedUser?.bio || "",
     },
   });
 
@@ -51,84 +64,153 @@ export default function EditProfile({
     return () => clearTimeout(timer);
   }, []);
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    await updateUser({
+      variables: {
+        name: data.displayName,
+        bio: data.bio,
+      },
+    });
   }
 
   //   if (showUsernameForm) {
   //     return <UsernameChange onBack={() => setShowUsernameForm(false)} />;
   //   }
 
+  const focusDisplayName = () => {
+    displayNameInputRef.current?.focus();
+  };
+
+  const focusBio = () => {
+    bioInputRef.current?.focus();
+  };
+
+  const displayName = form.watch("displayName");
+
+  const formIsDirty = form.formState.isDirty;
+
   return (
-    <div className="flex gap-4 p-4">
-      <motion.div
-        className="max-w-sm w-full"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: mounted ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+    <>
+      <div className="flex gap-4 p-4 overflow-hidden">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Display Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="shadcn"
-                      className="h-10 bg-background/40"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex gap-4 relative w-full"
+          >
+            <motion.div
+              className="w-full relative max-w-sm flex flex-col"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: mounted ? 1 : 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Display Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="are you a bot?"
+                          className="h-10 bg-background/40"
+                          {...field}
+                          ref={displayNameInputRef}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="bio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>About me</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="write something about yourself"
-                      className="h-10 bg-background/40"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>About me</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="empty bio makes you look boring..."
+                          className="h-10 bg-background/40"
+                          {...field}
+                          ref={bioInputRef}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <Button type="submit">Submit</Button>
+              <div className="flex max-w-sm items-center my-10 p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
+                <div>
+                  <div className="font-semibold">Username</div>
+                  <div className="text-muted-foreground text-sm">
+                    {cachedUser?.username}
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="muted"
+                  onClick={onUsernameEdit}
+                >
+                  Edit
+                </Button>
+              </div>
+
+              {/* Spacer to prevent layout shift */}
+              <div className="h-24" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: mounted ? 1 : 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Preview
+                onBioClick={focusBio}
+                onUsernameEdit={onUsernameEdit}
+                onDisplayNameClick={focusDisplayName}
+                displayName={displayName}
+              />
+            </motion.div>
+
+            <AnimatePresence>
+              {formIsDirty && (
+                <motion.div
+                  key="confirmation-bar"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ type: "spring", damping: 10 }}
+                  className="fixed left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
+                >
+                  <p>Save Changes</p>
+
+                  <div className="space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-transparent"
+                      onClick={() => form.reset()}
+                      type="button"
+                    >
+                      Reset
+                    </Button>
+                    <Button variant="success" size="sm" type="submit">
+                      {loading ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </form>
         </Form>
-
-        <div className="flex items-center my-10 p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
-          <div>
-            <div className="font-semibold">Username</div>
-            <div className="text-muted-foreground text-sm">bignate021</div>
-          </div>
-          <Button size="sm" variant="muted" onClick={onUsernameEdit}>
-            Edit
-          </Button>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: mounted ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Preview onUsernameEdit={onUsernameEdit} />
-      </motion.div>
-    </div>
+      </div>
+    </>
   );
 }

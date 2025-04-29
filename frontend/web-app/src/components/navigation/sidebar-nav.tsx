@@ -9,9 +9,10 @@ import {
   IconBell,
   IconMail,
   IconPencil,
+  IconPower,
 } from "@tabler/icons-react";
 import { UserAvatar } from "../user/user-avatar";
-
+import { handleLogout } from "@/lib/Oauth-functions";
 // Helper function to check if a path matches a route pattern
 function isRouteActive(currentPath: string, routePattern: string): boolean {
   // If it's an exact match
@@ -123,9 +124,20 @@ export function SidebarNav({
       </div>
 
       {/* Bottom section - User Profile */}
-      <div className="flex items-center justify-center">
-        <UserAvatar />
-      </div>
+      {pathname !== "/profile" ? (
+        <Link href="/profile" className="flex items-center justify-center">
+          <UserAvatar />
+        </Link>
+      ) : (
+        <button
+          onClick={handleLogout}
+          className="flex h-12 hover:cursor-pointer w-12 items-center justify-center rounded-full p-2 text-foreground shadow-md hover:bg-foreground/10"
+          aria-label="log out"
+        >
+          <span className="sr-only">log out</span>
+          <IconPower />
+        </button>
+      )}
     </div>
   );
 }
