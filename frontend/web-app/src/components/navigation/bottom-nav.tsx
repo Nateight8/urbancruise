@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { IconHome, IconSearch, IconBell, IconMail } from "@tabler/icons-react";
+import { isRouteActive } from "@/lib/utils/route";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   {
@@ -35,21 +37,25 @@ interface NavlinkItem {
   title: string;
   href: string;
   Icon: React.ComponentType<{ className?: string }>;
+  active?: boolean;
 }
 
 export function BottomNav() {
+  const pathname = usePathname();
+
   return (
     <div className="fixed border-t bottom-0 left-0 right-0 z-50 md:hidden">
       <nav className="flex items-center gap-1 justify-between border-t bg-background/80 backdrop-blur-lg">
         {navItems.map((item) => {
-          return <NavlinkItem key={item.href} {...item} />;
+          const active = isRouteActive(pathname, item.href);
+          return <NavlinkItem key={item.href} {...item} active={active} />;
         })}
       </nav>
     </div>
   );
 }
 
-function NavlinkItem({ Icon, href }: NavlinkItem) {
+function NavlinkItem({ Icon, href, active }: NavlinkItem) {
   const router = useRouter();
 
   return (
@@ -61,7 +67,7 @@ function NavlinkItem({ Icon, href }: NavlinkItem) {
       className="h-15 flex-1 flex items-center justify-center"
     >
       <div className="p-4">
-        <Icon className="h-6 w-6" />
+        <Icon className={cn("h-6 w-6", active && "text-primary")} />
       </div>
     </button>
   );
