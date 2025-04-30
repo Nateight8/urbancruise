@@ -2,14 +2,29 @@
 
 // import { useState } from "react";
 
-import AccountRemovalButton from "./_components/account-removal-button";
+import AccountRemovalButton from "../../_components/account-removal-button";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import ChangeUsername from "./_components/change-username";
+import ChangeUsername from "../../_components/change-un";
 
 export default function Page() {
   //   const [showUsernameForm, setShowUsernameForm] = useState(false);
   const router = useRouter();
+
+  const handleDisableAccount = () => {
+    // TODO: Implement account disable functionality
+    console.log("Disabling account...");
+  };
+
+  const handleDeleteAccount = () => {
+    // TODO: Implement account deletion functionality
+    console.log("Deleting account...");
+  };
+
+  const handleUsernameBack = () => {
+    // TODO: Handle username change back action
+    console.log("Username change cancelled");
+  };
 
   return (
     <div className="relative w-full max-w-sm h-[500px] overflow-hidden">
@@ -38,7 +53,7 @@ export default function Page() {
             <div className="font-semibold ">Username</div>
             <div className="text-muted-foreground text-sm">bignate021</div>
           </div>
-          <ChangeUsername />
+          <ChangeUsername onBack={handleUsernameBack} />
         </div>
 
         {/* Email */}
@@ -86,8 +101,11 @@ export default function Page() {
             taking this action.
           </p>
           <div className="flex gap-4">
-            <AccountRemovalButton type="disable" />
-            <AccountRemovalButton type="delete" />
+            <AccountRemovalButton
+              type="disable"
+              action={handleDisableAccount}
+            />
+            <AccountRemovalButton type="delete" action={handleDeleteAccount} />
           </div>
         </div>
       </div>

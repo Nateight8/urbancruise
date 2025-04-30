@@ -5,6 +5,16 @@ import AccountRemovalButton from "../../_components/account-removal-button";
 // import AccountRemovalButton from "./_components/account-removal-button";
 
 export default function Account() {
+  const handleDisableAccount = () => {
+    // TODO: Implement account disable functionality
+    console.log("Disabling account...");
+  };
+
+  const handleDeleteAccount = () => {
+    // TODO: Implement account deletion functionality
+    console.log("Deleting account...");
+  };
+
   return (
     <>
       <div className="bg-muted/30 border rounded-xl p-6 max-w-sm w-full space-y-6">
@@ -77,8 +87,8 @@ export default function Account() {
           taking this action.
         </p>
         <div className="flex gap-4">
-          <AccountRemovalButton type="disable" />
-          <AccountRemovalButton type="delete" />
+          <AccountRemovalButton type="disable" action={handleDisableAccount} />
+          <AccountRemovalButton type="delete" action={handleDeleteAccount} />
         </div>
       </div>
     </>

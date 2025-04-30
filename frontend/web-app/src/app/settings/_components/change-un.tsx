@@ -70,7 +70,7 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
       }
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, cachedUser?.username]);
+  }, [form, cachedUser?.username]);
 
   const usernameIsAvailable = username === cachedUser?.username || isAvailable;
 
