@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-svh">
-      <aside className="w-80 h-full border-r py-2 pl-2 ">
+      <aside className="w-80 hidden md:block h-full border-r py-2 pl-2 ">
         <div className="w-full max-w-50 p-4 ml-auto h-full flex flex-col justify-between">
           <div className="">
             <h3 className="p-2.5  uppercase py-4 text-muted-foreground font-bold text-sm">
@@ -40,7 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </footer>
         </div>
       </aside>
-      <main className="flex-1 bg-muted/25 pt-16 overflow-y-auto px-8 py-8">
+      <main className="flex-1 bg-muted/25 md:pt-16 overflow-y-auto md:px-8 md:py-8">
         {children}
       </main>
     </div>

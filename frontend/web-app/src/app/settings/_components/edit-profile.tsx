@@ -95,10 +95,10 @@ export default function EditProfile({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex gap-4 relative w-full"
+            className="flex md:gap-4 relative w-full"
           >
             <motion.div
-              className="w-full relative max-w-sm flex flex-col"
+              className="w-full relative md:max-w-sm flex flex-col"
               initial={{ opacity: 0 }}
               animate={{ opacity: mounted ? 1 : 0 }}
               exit={{ opacity: 0 }}
@@ -144,7 +144,7 @@ export default function EditProfile({
                 />
               </div>
 
-              <div className="space-y-4 my-10">
+              <div className="space-y-4 my-10 hidden md:block">
                 <div className="flex max-w-sm items-center p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
                   <div>
                     <div className="font-semibold">Username</div>
@@ -209,23 +209,25 @@ export default function EditProfile({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 20 }}
                   transition={{ type: "spring", damping: 10 }}
-                  className="fixed left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
+                  className="fixed left-1/2 w-full -translate-x-1/2 bottom-4 p-4  "
                 >
-                  <p>Save Changes</p>
+                  <div className="border shadow-md shadow-black p-3 max-w-3xl bg-muted/30 w-full flex items-center justify-between rounded-2xl">
+                    <p>Save Changes</p>
 
-                  <div className="space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-transparent"
-                      onClick={() => form.reset()}
-                      type="button"
-                    >
-                      Reset
-                    </Button>
-                    <Button variant="success" size="sm" type="submit">
-                      {loading ? "Saving..." : "Save Changes"}
-                    </Button>
+                    <div className="space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-transparent"
+                        onClick={() => form.reset()}
+                        type="button"
+                      >
+                        Reset
+                      </Button>
+                      <Button variant="success" size="sm" type="submit">
+                        {loading ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )}

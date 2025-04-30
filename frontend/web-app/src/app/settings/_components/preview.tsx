@@ -38,7 +38,7 @@ export default function Preview({
   console.log("cachedUser", cachedUser);
 
   return (
-    <div className="flex-1 px-6">
+    <div className="flex-1 px-6 hidden md:block">
       <h1 className="text-sm font-bold pb-4">Preview</h1>
       <div className="border shadow-black/40 hover:shadow-lg hover:cursor-pointer shadow-md bg-muted/30 rounded-md p-4 py-6 max-w-xs flex flex-col justify-center items-center gap-4">
         <Avatar className="size-14">
