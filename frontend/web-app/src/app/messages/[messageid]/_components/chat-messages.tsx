@@ -21,22 +21,22 @@ export default function ChatMessages({
   }, [messages]);
 
   return (
-    <main className="flex-1 bg-muted/20 border md:rounded-lg overflow-hidden p-2">
+    <div className="flex-1 bg-muted/20 border md:rounded-lg overflow-hidden">
       {loading ? (
-        <Skeleton className="size-full bg-muted/40  " />
+        <Skeleton className="h-full bg-muted/40" />
       ) : (
-        <ScrollArea className="h-[calc(100vh-200px)]">
-          <div className="flex flex-col h-[calc(100vh-200px)]">
-            <div className="flex-1 w-full " />
+        <ScrollArea className="h-full p-4">
+          <div className="flex flex-col min-h-full">
+            <div className="flex-1" />
             <div className="flex flex-col gap-2">
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
-              <div ref={messagesEndRef} /> {/* Anchor for auto-scrolling */}
+              <div ref={messagesEndRef} />
             </div>
           </div>
         </ScrollArea>
       )}
-    </main>
+    </div>
   );
 }

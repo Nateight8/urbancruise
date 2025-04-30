@@ -156,7 +156,7 @@ export default function MessageClient({
 
   return (
     <>
-      <div className="flex h-[100svh] flex-col md:p-2">
+      <div className="flex size-full flex-col md:p-2">
         <ChatAppBar
           loading={loading}
           participants={data?.conversation?.participants || []}

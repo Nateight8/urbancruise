@@ -39,8 +39,9 @@ interface NavlinkItem {
 export function BottomNav() {
   const pathname = usePathname();
 
-  // Hide bottom nav in message detail pages
-  if (pathname.includes("/messages/")) return null;
+  // Hide bottom nav in message detail pages and settings routes
+  if (pathname.includes("/messages/") || pathname.includes("/settings"))
+    return null;
 
   return (
     <div className="fixed border-t bottom-0 left-0 right-0 z-50 md:hidden">
