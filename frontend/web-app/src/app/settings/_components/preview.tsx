@@ -80,6 +80,7 @@ export default function Preview({
         </p>
         <div className="flex gap-4">
           <AccountRemovalButton
+            disabled={true}
             type="disable"
             action={() => {
               console.log("Account disabled");

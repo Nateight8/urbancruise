@@ -144,21 +144,43 @@ export default function EditProfile({
                 />
               </div>
 
-              <div className="flex max-w-sm items-center my-10 p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
-                <div>
-                  <div className="font-semibold">Username</div>
-                  <div className="text-muted-foreground text-sm">
-                    {cachedUser?.username}
+              <div className="space-y-4 my-10">
+                <div className="flex max-w-sm items-center p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
+                  <div>
+                    <div className="font-semibold">Username</div>
+                    <div className="text-muted-foreground text-sm">
+                      {cachedUser?.username}
+                    </div>
                   </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="muted"
+                    onClick={onUsernameEdit}
+                  >
+                    Edit
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="muted"
-                  onClick={onUsernameEdit}
-                >
-                  Edit
-                </Button>
+
+                <div className="flex max-w-sm items-center p-4 rounded-xl shadow-black border hover:shadow-md transition-all duration-300 justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold">Email</div>
+                    <div className="text-muted-foreground text-sm truncate w-full pr-3">
+                      {cachedUser?.email}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="muted"
+                    onClick={onUsernameEdit}
+                  >
+                    Change Email
+                  </Button>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Joined 2024-01-01
+                </p>
               </div>
 
               {/* Spacer to prevent layout shift */}

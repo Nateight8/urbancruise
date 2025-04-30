@@ -129,6 +129,7 @@ export interface User {
   onboardingCompleted: boolean;
   displayName: string;
   bio: string;
+  email: string;
 }
 
 export type { GetLoggedInUserResponse, UpdateUsernameResponse };

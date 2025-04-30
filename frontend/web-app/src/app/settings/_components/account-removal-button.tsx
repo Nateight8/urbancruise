@@ -12,9 +12,11 @@ import {
 export default function AccountRemovalButton({
   type,
   action,
+  disabled = false,
 }: {
   type: "disable" | "delete";
   action: () => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const isDelete = type === "delete";
@@ -22,7 +24,7 @@ export default function AccountRemovalButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="destructive">
+        <Button disabled={disabled} size="sm" variant="destructive">
           {isDelete ? "Delete Account" : "Disable Account"}
         </Button>
       </DialogTrigger>

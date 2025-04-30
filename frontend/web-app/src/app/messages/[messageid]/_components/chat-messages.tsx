@@ -21,7 +21,7 @@ export default function ChatMessages({
   }, [messages]);
 
   return (
-    <main className="flex-1 bg-muted/20 border rounded-lg overflow-hidden p-2">
+    <main className="flex-1 bg-muted/20 border md:rounded-lg overflow-hidden p-2">
       {loading ? (
         <Skeleton className="size-full bg-muted/40  " />
       ) : (

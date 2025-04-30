@@ -91,7 +91,7 @@ export default function ChatList() {
 
   if (loading)
     return (
-      <aside className="w-80 h-full border-r py-2 pl-2">
+      <aside className="w-full md:w-80 h-full border-r py-2 pl-2">
         <ScrollArea className="h-full">
           {Array.from({ length: 10 }).map((_, index) => (
             <div
@@ -110,7 +110,7 @@ export default function ChatList() {
     );
 
   return (
-    <aside className="w-80 h-full border-r py-2 pl-2">
+    <aside className="w-full md:w-80 h-full md:border-r py-2 pl-2 pr-2 md:pr-0">
       <ScrollArea className="h-full">
         {chatLists.map((chatlist) => (
           <ChatListItem

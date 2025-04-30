@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { IconHome, IconSearch, IconBell, IconMail } from "@tabler/icons-react";
+import { IconHome, IconMail } from "@tabler/icons-react";
 import { isRouteActive } from "@/lib/utils/route";
 import { cn } from "@/lib/utils";
 import { UserRound } from "lucide-react";
@@ -12,21 +12,21 @@ const navItems = [
     href: "/",
     Icon: IconHome,
   },
-  {
-    title: "Explore",
-    href: "/explore",
-    Icon: IconSearch,
-  },
+  // {
+  //   title: "Explore",
+  //   href: "/explore",
+  //   Icon: IconSearch,
+  // },
   {
     title: "Messages",
     href: "/messages",
     Icon: IconMail,
   },
-  {
-    title: "Notifications",
-    href: "/notifications",
-    Icon: IconBell,
-  },
+  // {
+  //   title: "Notifications",
+  //   href: "/notifications",
+  //   Icon: IconBell,
+  // },
 ];
 
 interface NavlinkItem {
@@ -52,7 +52,7 @@ export function BottomNav() {
 
         <NavlinkItem
           Icon={UserRound}
-          href="/create"
+          href="/profile"
           active={false}
           title="Profile"
         />

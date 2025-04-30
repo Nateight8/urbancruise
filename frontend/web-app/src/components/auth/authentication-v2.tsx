@@ -12,7 +12,7 @@ export default function AuthenticationScreen({
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   return (
-    <div className="inset-0 fixed bg-background backdrop-blur-sm flex items-center justify-center">
+    <div className="inset-0 fixed bg-background backdrop-blur-sm flex p-4 md:p-0 items-center justify-center">
       <div className="w-full max-w-sm mx-auto">
         <div className={cn("flex flex-col gap-6", className)} {...props}>
           <form>
