@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { IconHome, IconSearch, IconBell, IconMail } from "@tabler/icons-react";
 import { isRouteActive } from "@/lib/utils/route";
 import { cn } from "@/lib/utils";
+import { UserRound } from "lucide-react";
 
 const navItems = [
   {
@@ -26,22 +27,20 @@ const navItems = [
     href: "/notifications",
     Icon: IconBell,
   },
-  {
-    title: "Street",
-    href: "/strret",
-    Icon: IconBell,
-  },
 ];
 
 interface NavlinkItem {
   title: string;
   href: string;
-  Icon: React.ComponentType<{ className?: string }>;
+  Icon: React.ComponentType<{ className?: string; fill?: string }>;
   active?: boolean;
 }
 
 export function BottomNav() {
   const pathname = usePathname();
+
+  // Hide bottom nav in message detail pages
+  if (pathname.includes("/messages/")) return null;
 
   return (
     <div className="fixed border-t bottom-0 left-0 right-0 z-50 md:hidden">
@@ -50,6 +49,13 @@ export function BottomNav() {
           const active = isRouteActive(pathname, item.href);
           return <NavlinkItem key={item.href} {...item} active={active} />;
         })}
+
+        <NavlinkItem
+          Icon={UserRound}
+          href="/create"
+          active={false}
+          title="Profile"
+        />
       </nav>
     </div>
   );
@@ -67,27 +73,13 @@ function NavlinkItem({ Icon, href, active }: NavlinkItem) {
       className="h-15 flex-1 flex items-center justify-center"
     >
       <div className="p-4">
-        <Icon className={cn("h-6 w-6", active && "text-primary")} />
+        <Icon
+          className={cn(
+            "h-6 w-6 text-muted-foreground",
+            active && "text-primary"
+          )}
+        />
       </div>
     </button>
   );
 }
-
-// Helper function to check if a path matches a route pattern
-// function isRouteActive(currentPath: string, routePattern: string): boolean {
-//   // If it's an exact match
-//   if (currentPath === routePattern) return true;
-
-//   // If the route pattern ends with a dynamic segment (e.g., /messages/[id])
-//   if (routePattern.includes("[") && routePattern.includes("]")) {
-//     const basePath = routePattern.split("/[")[0];
-//     return currentPath.startsWith(basePath);
-//   }
-
-//   // If the route pattern is a parent route (e.g., /messages)
-//   if (currentPath.startsWith(routePattern + "/")) {
-//     return true;
-//   }
-
-//   return false;
-// }
