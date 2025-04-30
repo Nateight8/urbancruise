@@ -36,8 +36,11 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
     userOperations.Mutations.updateUsername
   );
   const cachedUser = useCachedUser();
-
   const [mounted, setMounted] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [username, setUsername] = useState(cachedUser?.username || "");
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,12 +58,42 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const usernameIsAvailable =
-    form.watch("username") === cachedUser?.username || isAvailable;
+  // Watch for username changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "username") {
+        const newUsername = value.username || "";
+        setUsername(newUsername);
+        setShowConfirmation(
+          newUsername.length >= 3 && newUsername !== cachedUser?.username
+        );
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch, cachedUser?.username]);
+
+  const usernameIsAvailable = username === cachedUser?.username || isAvailable;
+
+  const isValidUsername = formSchema.safeParse({ username }).success;
+
+  const getColorClass = () => {
+    if (!username) {
+      return "text-muted-foreground";
+    }
+
+    switch (true) {
+      case username === cachedUser?.username:
+        return "text-muted-foreground";
+      case !isValidUsername:
+        return "text-destructive";
+      case usernameIsAvailable && isValidUsername:
+        return "text-success";
+      default:
+        return "text-destructive";
+    }
+  };
 
   const getStatusMessage = () => {
-    const username = form.watch("username");
-
     if (!username || username.length < 3) {
       return null;
     }
@@ -79,6 +112,13 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
       };
     }
 
+    if (!isValidUsername) {
+      return {
+        text: "Invalid username format",
+        className: "text-destructive",
+      };
+    }
+
     if (isAvailable) {
       return {
         text: "Available!",
@@ -93,11 +133,23 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
   };
 
   const onSubmit = async (data: FormValues) => {
-    await updateUsername({
-      variables: {
-        username: data.username,
-      },
-    });
+    try {
+      const result = await updateUsername({
+        variables: {
+          username: data.username,
+        },
+      });
+
+      if (result.data?.updateUsername?.success) {
+        setIsSuccess(true);
+        form.reset({ username: data.username });
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Error updating username:", error);
+    }
   };
 
   return (
@@ -130,15 +182,7 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
             transition={{ duration: 0.2, delay: 0.4 }}
             className="absolute top-1/2 text-xs text-muted-foreground w-36 text-right flex items-center justify-end"
           >
-            <span
-              className={`${
-                !form.watch("username")
-                  ? "text-muted-foreground"
-                  : usernameIsAvailable
-                  ? "text-success"
-                  : "text-destructive"
-              }`}
-            >
+            <span className={`${getColorClass()}`}>
               3-20 chars, letters, numbers, underscores
             </span>
             <LeftArrow className="text-muted-foreground" />
@@ -150,25 +194,8 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
             transition={{ duration: 0.2, delay: 0.6 }}
             className="text-xs text-muted-foreground mb-2 absolute right-4 top-1/3 w-52 flex items-center flex-col gap-2"
           >
-            <UniqueIcon
-              size={64}
-              className={`${
-                !form.watch("username")
-                  ? "text-muted-foreground"
-                  : usernameIsAvailable
-                  ? "text-success"
-                  : "text-destructive"
-              }`}
-            />
-            <span
-              className={`text-center -mt-4 ${
-                !form.watch("username")
-                  ? "text-muted-foreground"
-                  : usernameIsAvailable
-                  ? "text-success"
-                  : "text-destructive"
-              }`}
-            >
+            <UniqueIcon size={64} className={getColorClass()} />
+            <span className={`text-center -mt-4 ${getColorClass()}`}>
               Pick a unique identifier that will represent you across the
               platform.
             </span>
@@ -205,52 +232,67 @@ export default function ChangeUsername({ onBack }: { onBack: () => void }) {
           />
 
           <AnimatePresence>
-            {form.watch("username").length >= 3 &&
-              cachedUser?.username !== form.watch("username") && (
-                <motion.div
-                  key="confirmation-bar"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ type: "spring", damping: 10 }}
-                  className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
-                >
-                  <p className="hidden md:block">
-                    Confirm to set profile URL: urbancruise.com/
-                    <span
-                      className={
-                        !usernameIsAvailable
-                          ? "text-muted-foreground"
-                          : "text-foreground"
-                      }
-                    >
-                      {form.watch("username")}
-                    </span>
-                  </p>
+            {showConfirmation && !isSuccess && (
+              <motion.div
+                key="confirmation-bar"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 10 }}
+                className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-between rounded-2xl p-3 max-w-3xl border shadow-md shadow-black bg-muted/30"
+              >
+                <p className="hidden md:block">
+                  Confirm to set profile URL: urbancruise.com/
+                  <span
+                    className={
+                      !usernameIsAvailable
+                        ? "text-muted-foreground"
+                        : "text-foreground"
+                    }
+                  >
+                    {username}
+                  </span>
+                </p>
 
-                  <p className="block md:hidden">Save Changes</p>
+                <p className="block md:hidden">Save Changes</p>
 
-                  <div className="space-x-2 space-y-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-transparent"
-                      onClick={() => form.reset()}
-                      type="button"
-                    >
-                      Reset
-                    </Button>
-                    <Button
-                      variant="success"
-                      disabled={!usernameIsAvailable}
-                      size="sm"
-                      type="submit"
-                    >
-                      {loading ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
+                <div className="space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-transparent"
+                    onClick={() => {
+                      form.reset();
+                      setShowConfirmation(false);
+                    }}
+                    type="button"
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    variant="success"
+                    disabled={!usernameIsAvailable || loading}
+                    size="sm"
+                    type="submit"
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {isSuccess && (
+              <motion.div
+                key="success-message"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 10 }}
+                className="absolute left-1/2 -translate-x-1/2 bottom-4 w-full flex items-center justify-center rounded-2xl p-3 max-w-3xl text-success"
+              >
+                Username updated successfully!
+              </motion.div>
+            )}
           </AnimatePresence>
         </form>
       </Form>
