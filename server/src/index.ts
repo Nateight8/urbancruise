@@ -34,10 +34,15 @@ interface MyContext {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const allowedOrigins = process.env
-  .CORS_ORIGINS!.split(",")
-  .map((origin) => origin.trim().replace(/\/$/, ""))
-  .filter(Boolean);
+const allowedOrigins = [
+  ...process.env
+    .CORS_ORIGINS!.split(",")
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean),
+  "https://studio.apollographql.com", // Allow Apollo Sandbox
+  "http://localhost:4000", // Allow local development
+  "http://localhost:3000", // Allow local frontend
+];
 
 const corsOptions: CorsOptions = {
   origin: (
@@ -47,6 +52,7 @@ const corsOptions: CorsOptions = {
     if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
       callback(null, true);
     } else {
+      console.log("CORS blocked origin:", origin); // Add logging for debugging
       callback(new Error("Not allowed by CORS"));
     }
   },

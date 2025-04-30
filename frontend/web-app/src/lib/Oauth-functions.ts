@@ -9,4 +9,12 @@ const handleGoogleAuth = () => {
   window.location.href = backendUrl;
 };
 
-export { handleGoogleAuth };
+function handleLogout() {
+  // Use your backend logout endpoint
+  const logoutUrl =
+    process.env.NEXT_PUBLIC_LOGOUT_URL || "http://localhost:4000/logout"; // fallback for local dev
+
+  window.location.href = logoutUrl;
+}
+
+export { handleGoogleAuth, handleLogout };

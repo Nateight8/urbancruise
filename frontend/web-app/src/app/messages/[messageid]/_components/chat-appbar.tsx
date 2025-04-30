@@ -5,7 +5,7 @@ import { IconChevronLeft, IconUser } from "@tabler/icons-react";
 import { ConversationParticipant } from "@/graphql/operations/conversation-operations";
 import { useCachedUser } from "@/hooks/use-cached-user";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import { useRouter } from "next/navigation";
 export default function ChatAppBar({
   participants,
   loading,
@@ -19,14 +19,17 @@ export default function ChatAppBar({
     (participant) => participant.user.username !== cachedUser?.username
   );
 
+  const router = useRouter();
+
   return (
-    <header className="flex-shrink-0  h-16 flex  items-center">
+    <header className="flex-shrink-0 p-2 md:p-0 h-16 flex  items-center">
       <div className="flex items-center gap-3">
         <Button
           className="rounded-full"
           variant="muted"
           size="icon"
           aria-label="Add new item"
+          onClick={() => router.back()}
         >
           <IconChevronLeft size={16} aria-hidden="true" />
         </Button>

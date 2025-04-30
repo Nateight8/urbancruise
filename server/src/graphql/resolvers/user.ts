@@ -14,6 +14,11 @@ import * as schema from "../../db/schema/auth.js";
 import { Snowflake } from "@theinternetfolks/snowflake";
 >>>>>>> origin/main
 
+// Helper function for email validation
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 const userResolvers = {
   Query: {
     // Get logged in user
@@ -122,14 +127,48 @@ const userResolvers = {
       const userId = session.id;
 
       try {
-        // 2. Check if the user exists
-        const existingUser = await db
+        // 2. Filter out null values and only include allowable fields
+        const allowedFields = [
+          "name",
+          "bio",
+          "displayName",
+          "avatar",
+          "email",
+          "location",
+          "address",
+          "banner",
+          "username",
+          "image",
+        ];
+
+        const filteredInput = Object.fromEntries(
+          Object.entries(userInput).filter(
+            ([key, value]) => value !== null && allowedFields.includes(key)
+          )
+        );
+
+        // 3. Validate critical fields if present
+        if (filteredInput.email && !isValidEmail(filteredInput.email)) {
+          throw new GraphQLError("Invalid email format", {
+            extensions: {
+              code: "BAD_USER_INPUT",
+              http: { status: 400 },
+            },
+          });
+        }
+
+        // 4. Update user and return the result
+        // Update the user
+        await db.update(users).set(filteredInput).where(eq(users.id, userId));
+
+        // Get the updated user
+        const updatedUser = await db
           .select()
           .from(users)
           .where(eq(users.id, userId))
           .limit(1);
 
-        if (existingUser.length === 0) {
+        if (!updatedUser[0]) {
           throw new GraphQLError("User not found", {
             extensions: {
               code: "NOT_FOUND",
@@ -138,32 +177,6 @@ const userResolvers = {
           });
         }
 
-        if (
-          userInput.username &&
-          userInput.username.toLowerCase() ===
-            existingUser[0].username?.toLowerCase()
-        ) {
-          return {
-            success: false,
-            message: "Your username is already set as " + userInput.username,
-            user: existingUser[0],
-          };
-        }
-
-        // 3. Update user with only the provided fields
-        const filteredInput = Object.fromEntries(
-          Object.entries(userInput).filter(([_, v]) => v !== null)
-        );
-
-        await db.update(users).set(filteredInput).where(eq(users.id, userId));
-
-        // 4. Fetch updated user
-        const updatedUser = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, userId))
-          .limit(1);
-
         return {
           success: true,
           message: "User updated successfully",
@@ -171,14 +184,31 @@ const userResolvers = {
         };
       } catch (error) {
         console.error("Update User Error:", error);
-        throw new GraphQLError("Failed to update user", {
-          extensions: {
-            code: "INTERNAL_SERVER_ERROR",
-            http: { status: 500 },
-            originalError:
-              error instanceof Error ? error.message : String(error),
-          },
-        });
+        const status =
+          error instanceof GraphQLError &&
+          "http" in (error.extensions || {}) &&
+          typeof error.extensions.http === "object" &&
+          error.extensions.http !== null &&
+          "status" in error.extensions.http
+            ? (error.extensions.http as { status: number }).status
+            : 500;
+
+        throw new GraphQLError(
+          error instanceof GraphQLError
+            ? error.message
+            : "Failed to update user",
+          {
+            extensions: {
+              code:
+                error instanceof GraphQLError
+                  ? error.extensions.code
+                  : "INTERNAL_SERVER_ERROR",
+              http: { status },
+              originalError:
+                error instanceof Error ? error.message : String(error),
+            },
+          }
+        );
       }
     },
 
@@ -268,10 +298,50 @@ const userResolvers = {
       }
     },
 
-    // Delete a user
-    deleteUser: async (_: any, { id }: { id: string }): Promise<boolean> => {
-      // Implement logic to delete a user from the database
-      return true;
+    /**
+     * Deletes the currently authenticated user and all their associated data.
+     * This operation triggers cascade deletion in the database for:
+     * - OAuth accounts
+     * - Sessions
+     * - Authenticators
+     * - Verification sessions
+     * - Conversation participants
+     * - Messages
+     *
+     * @returns {Promise<boolean>} True if deletion was successful
+     * @throws {GraphQLError} If user is not authenticated or deletion fails
+     */
+    deleteUser: async (
+      _: any,
+      __: any,
+      context: GraphqlContext
+    ): Promise<boolean> => {
+      const { db, session } = context;
+
+      // Ensure user is authenticated before proceeding
+      if (!session?.id) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      try {
+        // Delete user record - cascade deletion will handle related records
+        await db.delete(users).where(eq(users.id, session.id));
+        return true;
+      } catch (error) {
+        // Log error for debugging and throw user-friendly error
+        console.error("Delete user error:", error);
+        throw new GraphQLError("Failed to delete user", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            http: { status: 500 },
+          },
+        });
+      }
     },
   },
 };

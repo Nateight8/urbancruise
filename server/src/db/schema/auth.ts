@@ -20,6 +20,8 @@ export const db = drizzle(pool);
 export const users = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name"),
+  displayName: text("display_name"),
+  bio: text("bio"),
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),

@@ -7,7 +7,9 @@ export default function ChatsLayout({
 }) {
   return (
     <div className="flex h-svh">
-      <ChatList />
+      <div className="w-full hidden md:block">
+        <ChatList />
+      </div>
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );

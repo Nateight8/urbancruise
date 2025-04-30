@@ -8,7 +8,10 @@ import { useQuery } from "@apollo/client";
 
 export default function Home() {
   const { data: loggedInUser, loading } = useQuery(
-    userOperations.Querries.getLoggedInUser
+    userOperations.Querries.getLoggedInUser,
+    {
+      fetchPolicy: "network-only", // This ensures we always get fresh data
+    }
   );
 
   if (loading) {
@@ -19,17 +22,12 @@ export default function Home() {
     );
   }
 
-  // // Check if we have any data at all
-  if (!loggedInUser?.getLoggedInUser) {
+  // If we have no data or no logged in user, show authentication screen
+  if (!loggedInUser?.getLoggedInUser?.user) {
     return <AuthenticationScreen />;
   }
 
-  // // Check if we have a user object
-  if (!loggedInUser.getLoggedInUser.user) {
-    return <UsernameForm />;
-  }
-
-  // // Check if username is null or undefined
+  // If we have a user but no username, show username form
   if (!loggedInUser.getLoggedInUser.user.username) {
     return <UsernameForm />;
   }

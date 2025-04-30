@@ -9,8 +9,23 @@
 
 ### 2. User Management
 
-- ✅ User creation on Google login.
-- **Next:** Add endpoints or mutations for updating user profile, password reset (if needed), and account deletion. Ensure user data is validated and sanitized.
+#### Account Settings (MVP)
+
+- View account email (read-only)
+- Delete account (with confirmation)
+- Logout from all devices (optional)
+- Edit username
+
+#### Profile Edit (MVP)
+
+- Edit display name
+- Edit profile picture/avatar
+- Edit bio/about me
+
+#### V2 Considerations
+
+- Account Settings: 2FA, download data, change email, notification and privacy preferences, session management
+- Profile Edit: Social links, custom banner, profile theme, granular privacy controls
 
 ### 3. Authorization
 
@@ -44,6 +59,25 @@
 ### 9. Remember Me / Persistent Login (Optional)
 
 - **Next:** Consider implementing a "Remember Me" feature for persistent login. This allows users to stay logged in or easily re-authenticate after their session expires, improving user experience. Typically, this is done with a long-lived cookie or token that can re-establish the session when the user returns.
+
+### Account Settings Sections
+
+#### 1. Account Information
+
+- Email (read-only)
+- Username (edit)
+
+#### 2. Security
+
+- Change password (if supported)
+- Two-factor authentication (future)
+- Logout from all devices (optional)
+
+#### 3. Account Actions
+
+- Delete account
+- Download account data (future)
+- Deactivate account
 
 ---
 

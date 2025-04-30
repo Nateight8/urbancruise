@@ -68,7 +68,7 @@ export default function ChatInput({ messageId }: { messageId: string }) {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-2 md:p-0">
           <div className="sticky bottom-0 pt-4 md:pt-6 z-9999 gap-2 w-full bg-transparent flex items-center ">
             <div className="flex-1 bg-background rounded-[20px] ">
               <div className="relative flex items-center rounded-[20px] border border-transparent bg-muted/60 transition-colors focus-within:bg-muted/50 focus-within:border-input has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 [&:has(input:is(:disabled))_*]:pointer-events-none">
