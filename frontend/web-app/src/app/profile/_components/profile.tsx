@@ -9,8 +9,8 @@ export function Profile() {
   const cachedUser = useCachedUser();
 
   return (
-    <div className="max-w-md pt-12">
-      <div className="py-6 flex justify-end">
+    <div className="max-w-md w-full  md:pt-12">
+      <div className="py-6 px-4 flex justify-end">
         <Button
           size="icon"
           variant="ghost"
@@ -27,8 +27,8 @@ export function Profile() {
           <IconSettings className="size-6" />
         </Button>
       </div>
-      <div className="flex flex-col items-center gap-4 ">
-        <Avatar className="size-36">
+      <div className="flex px-4 flex-col items-center gap-4 ">
+        <Avatar className="size-24 md:size-36">
           <AvatarImage src={cachedUser?.image} />
           <AvatarFallback>
             <IconUser />
@@ -36,7 +36,7 @@ export function Profile() {
         </Avatar>
 
         <div className="flex flex-col items-center text-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-xl md:text-2xl font-bold">
             {cachedUser?.displayName || cachedUser?.name}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -46,31 +46,33 @@ export function Profile() {
       </div>
       {/* account stats */}
 
-      <div className="flex gap-4 py-4 text-center">
+      <div className="flex gap-4 p-4 text-center">
         <div className="flex-1 flex flex-col items-center">
-          <h3 className="text-2xl font-bold text-primary">712</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-primary">712</h3>
           <p className="text-xs text-muted-foreground tracking-wide uppercase">
             Following
           </p>
         </div>
 
         <div className="flex-1 flex flex-col items-center">
-          <h3 className="text-2xl font-bold text-primary">18.8k</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-primary">18.8k</h3>
           <p className="text-xs text-muted-foreground tracking-wide uppercase">
             Followers
           </p>
         </div>
 
         <div className="flex-1 flex flex-col items-center">
-          <h3 className="text-2xl font-bold text-primary text-center">12</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-primary text-center">
+            12
+          </h3>
           <p className="text-xs text-muted-foreground text-center tracking-wide uppercase">
             Posts
           </p>
         </div>
       </div>
 
-      <div className="py-4">
-        <p className="text-center text-base text-muted-foreground  mx-auto">
+      <div className="py-4 px-4 md:px-0">
+        <p className="text-center text-sm md:text-base text-muted-foreground  mx-auto">
           {cachedUser?.bio || "Empty bio makes you look boring..."}
         </p>
       </div>
