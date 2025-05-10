@@ -71,6 +71,20 @@
       "when": 1745476155477,
       "tag": "0009_daffy_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1745966440463,
+      "tag": "0010_amused_captain_flint",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1745966794371,
+      "tag": "0011_lean_shaman",
+      "breakpoints": true
     }
   ]
 }

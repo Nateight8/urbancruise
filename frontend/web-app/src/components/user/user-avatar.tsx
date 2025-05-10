@@ -4,14 +4,17 @@ import userOperations from "@/graphql/operations/user-operations";
 
 import { useQuery } from "@apollo/client";
 import { IconLogin2, IconUserFilled } from "@tabler/icons-react";
+
+import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 export function UserAvatar() {
-  const { data } = useQuery(userOperations.Querries.getLoggedInUser, {
-    skip: typeof window === "undefined",
+  const { data, loading } = useQuery(userOperations.Querries.getLoggedInUser, {
     fetchPolicy: "cache-first",
   });
 
   const user = data?.getLoggedInUser?.user;
+
+  if (loading) return <Skeleton className="size-12 rounded-full" />;
 
   if (!user)
     return (
@@ -26,13 +29,11 @@ export function UserAvatar() {
 
   return (
     <Avatar className="size-12">
-      {user?.image ? (
-        <AvatarImage src={user.image} alt={user.username || "User avatar"} />
-      ) : (
-        <AvatarFallback>
-          <IconUserFilled />
-        </AvatarFallback>
-      )}
+      <AvatarImage src={user.image} alt={user.username || "User avatar"} />
+
+      <AvatarFallback>
+        <IconUserFilled />
+      </AvatarFallback>
     </Avatar>
   );
 }

@@ -1,4 +1,3 @@
-import { Session } from "@auth/express";
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../db/schema/index.js";
@@ -15,21 +14,12 @@ export default interface GraphqlContext {
 // User type interface
 
 // Input type for createUser and updateUser
-export interface UserInput {
-  name?: string;
-  email: string;
-  image?: string;
-  location?: string;
-  address?: string;
-  phoneVerified?: boolean;
-  onboardingCompleted?: boolean;
-  shopname?: string;
-  shoptextfont?: string;
-  shoptextcolor?: string;
-  banner?: string;
-}
 
-export interface InstagramTokenResponse {
-  access_token: string;
-  user_id: string;
+// If you need a Session type, define it here for Passport.js:
+export interface Session {
+  id: string;
+  email: string;
+  name?: string;
+  image?: string;
+  // Add any other fields you expect from the user object
 }

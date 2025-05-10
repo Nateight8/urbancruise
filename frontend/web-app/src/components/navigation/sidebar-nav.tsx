@@ -9,27 +9,11 @@ import {
   IconBell,
   IconMail,
   IconPencil,
+  IconPower,
 } from "@tabler/icons-react";
 import { UserAvatar } from "../user/user-avatar";
-
-// Helper function to check if a path matches a route pattern
-function isRouteActive(currentPath: string, routePattern: string): boolean {
-  // If it's an exact match
-  if (currentPath === routePattern) return true;
-
-  // If the route pattern ends with a dynamic segment (e.g., /messages/[id])
-  if (routePattern.includes("[") && routePattern.includes("]")) {
-    const basePath = routePattern.split("/[")[0];
-    return currentPath.startsWith(basePath);
-  }
-
-  // If the route pattern is a parent route (e.g., /messages)
-  if (currentPath.startsWith(routePattern + "/")) {
-    return true;
-  }
-
-  return false;
-}
+import { handleLogout } from "@/lib/Oauth-functions";
+import { isRouteActive } from "@/lib/utils/route";
 
 export type SidebarNavItem = {
   title: string;
@@ -54,7 +38,7 @@ export function SidebarNav({
   return (
     <div
       className={cn(
-        "flex h-full flex-col justify-between  px-3 py-4 bg-background",
+        "hidden md:flex  h-full flex-col justify-between  px-3 py-4 bg-background",
         className
       )}
     >
@@ -123,9 +107,20 @@ export function SidebarNav({
       </div>
 
       {/* Bottom section - User Profile */}
-      <div className="flex items-center justify-center">
-        <UserAvatar />
-      </div>
+      {pathname !== "/profile" ? (
+        <Link href="/profile" className="flex items-center justify-center">
+          <UserAvatar />
+        </Link>
+      ) : (
+        <button
+          onClick={handleLogout}
+          className="flex h-12 hover:cursor-pointer w-12 items-center justify-center rounded-full p-2 text-foreground shadow-md hover:bg-foreground/10"
+          aria-label="log out"
+        >
+          <span className="sr-only">log out</span>
+          <IconPower />
+        </button>
+      )}
     </div>
   );
 }

@@ -16,7 +16,9 @@ function makeClient() {
   const httpLink = new HttpLink({
     credentials: "include",
     // this needs to be an absolute url, as relative urls cannot be used in SSR
-    uri: "http://localhost:4000/graphql",
+    // uri: "https://urbancruise-server-2-dev.onrender.com/graphql",
+    uri: process.env.NEXT_PUBLIC_GRAPHQL_URI,
+    // uri: "http://localhost:4000/graphql",
     // you can disable result caching here if you want to
     // (this does not work if you are rendering your page with `export const dynamic = "force-static"`)
     fetchOptions: { cache: "no-store" },
@@ -28,7 +30,8 @@ function makeClient() {
 
   const wsLink = new GraphQLWsLink(
     createClient({
-      url: "ws://localhost:4000/graphql",
+      // url: "ws://localhost:4000/graphql",
+      url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URI!,
       connectionParams: {
         credentials: "include",
       },

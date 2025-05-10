@@ -30,7 +30,7 @@ export default function MessageClient({
     conversationOperations.Mutations.markMessageAsRead
   );
 
-  const { data } = useQuery<GetConversationResponse>(
+  const { data, loading } = useQuery<GetConversationResponse>(
     conversationOperations.Querries.getConversation,
     {
       variables: {
@@ -156,9 +156,12 @@ export default function MessageClient({
 
   return (
     <>
-      <div className="flex h-[100svh] flex-col p-2">
-        <ChatAppBar participants={data?.conversation?.participants || []} />
-        <ChatMessages messages={messages} />
+      <div className="flex size-full flex-col md:p-2">
+        <ChatAppBar
+          loading={loading}
+          participants={data?.conversation?.participants || []}
+        />
+        <ChatMessages loading={loading} messages={messages} />
         <ChatInput messageId={messageid} />
       </div>
     </>

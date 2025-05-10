@@ -10,6 +10,9 @@ const userOperations = {
             username
             email
             image
+            name
+            displayName
+            bio
             onboardingCompleted
             participantId
           }
@@ -24,6 +27,8 @@ const userOperations = {
             id
             name
             username
+            displayName
+            bio
             participantId
             image
           }
@@ -39,6 +44,37 @@ const userOperations = {
   },
 
   Mutations: {
+    updateUser: gql`
+      mutation UpdateUser(
+        $name: String
+        $email: String
+        $displayName: String
+        $bio: String
+        $image: String
+        $location: String
+        $address: String
+        $phoneVerified: Boolean
+        $onboardingCompleted: Boolean
+        $banner: String
+      ) {
+        updateUser(
+          name: $name
+          email: $email
+          displayName: $displayName
+          bio: $bio
+          image: $image
+          location: $location
+          address: $address
+          phoneVerified: $phoneVerified
+          onboardingCompleted: $onboardingCompleted
+          banner: $banner
+        ) {
+          message
+          success
+        }
+      }
+    `,
+
     updateUsername: gql`
       mutation UpdateUsername($username: String!) {
         updateUsername(username: $username) {
@@ -49,6 +85,12 @@ const userOperations = {
             username
           }
         }
+      }
+    `,
+
+    deleteAccount: gql`
+      mutation DeletUser {
+        deleteUser
       }
     `,
   },
@@ -85,6 +127,9 @@ export interface User {
   participantId: string;
   image: string;
   onboardingCompleted: boolean;
+  displayName: string;
+  bio: string;
+  email: string;
 }
 
 export type { GetLoggedInUserResponse, UpdateUsernameResponse };

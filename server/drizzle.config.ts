@@ -1,5 +1,11 @@
 import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+<<<<<<< HEAD
+import { resolve } from "path";
+
+config({ path: ".env" });
+=======
+>>>>>>> origin/main
 
 config({ path: ".env" });
 

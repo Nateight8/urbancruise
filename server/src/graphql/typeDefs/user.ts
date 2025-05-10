@@ -13,6 +13,8 @@ export const userTypeDefs = gql`
   type User {
     id: ID!
     name: String
+    displayName: String
+    bio: String
     email: String
     emailVerified: String
     image: String
@@ -51,6 +53,8 @@ export const userTypeDefs = gql`
     updateUser(
       name: String
       email: String
+      displayName: String
+      bio: String
       image: String
       location: String
       address: String
@@ -61,7 +65,7 @@ export const userTypeDefs = gql`
 
     updateUsername(username: String!): UpdateUserResponse
 
-    deleteUser(id: ID!): Boolean
+    deleteUser: Boolean!
   }
 `;
 
@@ -74,5 +78,6 @@ export interface UserProfileInput {
   phoneVerified: boolean | null;
   onboardingCompleted: boolean | null;
   banner: string | null;
-  username: string | null;
+  bio: string | null;
+  displayName: string | null;
 }

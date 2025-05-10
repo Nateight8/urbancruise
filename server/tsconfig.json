@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
     "target": "ESNext",
     "esModuleInterop": true,
@@ -10,15 +10,22 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "outDir": "./dist",
+<<<<<<< HEAD
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "typeRoots": ["./src/types", "./node_modules/@types"]
+=======
     "rootDir": "./src",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "preserveSymlinks": true
+>>>>>>> origin/main
   },
   "ts-node": {
     "esm": true,
     "require": ["tsconfig-paths/register"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"]
 }

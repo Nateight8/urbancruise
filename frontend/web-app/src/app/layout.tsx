@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ApolloWrapper } from "@/components/providers/apollo-wrapper";
 import { SidebarNav } from "@/components/navigation/sidebar-nav";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,9 +30,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ApolloWrapper>
-          <div className="flex h-screen overflow-hidden">
+          <div className="flex flex-col md:flex-row h-screen overflow-hidden">
             <SidebarNav />
             <main className="flex-1 overflow-y-auto ">{children}</main>
+            <BottomNav />
           </div>
         </ApolloWrapper>
       </body>

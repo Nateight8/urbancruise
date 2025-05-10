@@ -1,19 +1,31 @@
-import { User, users } from "@/db/schema/auth";
-import GraphqlContext, { UserInput } from "@/types/types.utils.js";
+<<<<<<< HEAD
+import { User, users } from "../../db/schema/auth.js";
+import GraphqlContext from "../../types/types.utils.js";
 import { eq, sql, ne } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { UserProfileInput } from "../typeDefs/user.js";
-import * as schema from "@/db/schema/auth.js";
+=======
+import { User, users } from "../../db/schema/auth";
+import GraphqlContext, { UserInput } from "../../types/types.utils.js";
+import { eq, sql, ne } from "drizzle-orm";
+import { GraphQLError } from "graphql";
+import { UserProfileInput } from "../typeDefs/user.js";
+import * as schema from "../../db/schema/auth.js";
 import { Snowflake } from "@theinternetfolks/snowflake";
+>>>>>>> origin/main
+
+// Helper function for email validation
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 const userResolvers = {
   Query: {
     // Get logged in user
     getLoggedInUser: async (_: any, __: any, context: GraphqlContext) => {
       const { db, session } = context;
-      const { user: loggedInUser } = session;
-
-      if (!loggedInUser?.id) {
+      console.log("session in resolver:", session);
+      if (!session?.id) {
         console.error("User not authenticated, session data:", session);
         throw new GraphQLError("Not authenticated", {
           extensions: {
@@ -26,7 +38,7 @@ const userResolvers = {
         const userRecord = await db
           .select()
           .from(users)
-          .where(eq(users.id, loggedInUser.id));
+          .where(eq(users.id, session.id));
 
         const user = userRecord[0];
 
@@ -44,9 +56,15 @@ const userResolvers = {
     getAllUsers: async (_: any, __: any, { session, db }: GraphqlContext) => {
       try {
         // Create a query that conditionally excludes the logged-in user if a session exists
+<<<<<<< HEAD
         const allUsers = await db.query.users.findMany({
-          where: session?.user?.id ? ne(users.id, session.user.id) : undefined,
+          where: session?.id ? ne(users.id, session.id) : undefined,
         });
+=======
+        const allUsers = session?.user?.id
+          ? await db.select().from(users).where(ne(users.id, session.user.id))
+          : await db.select().from(users);
+>>>>>>> origin/main
 
         return {
           status: 200,
@@ -72,12 +90,19 @@ const userResolvers = {
       const { db } = context;
       const lowercaseUsername = username.toLowerCase();
 
+<<<<<<< HEAD
       const existingUser = await db.query.users.findFirst({
-        where: (users: typeof schema.users) =>
-          sql`LOWER(${users.username}) = ${lowercaseUsername}`,
+        where: (users) => sql`LOWER(${users.username}) = ${lowercaseUsername}`,
       });
+=======
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
+        .limit(1);
+>>>>>>> origin/main
 
-      return !existingUser;
+      return existingUser.length === 0;
     },
   },
 
@@ -90,7 +115,7 @@ const userResolvers = {
       const { db, session } = context;
 
       // 1. Ensure the user is authenticated
-      if (!session || !session.user?.id) {
+      if (!session?.id) {
         throw new GraphQLError("Not authenticated", {
           extensions: {
             code: "UNAUTHENTICATED",
@@ -99,17 +124,51 @@ const userResolvers = {
         });
       }
 
-      const userId = session.user.id;
+      const userId = session.id;
 
       try {
-        // 2. Check if the user exists
-        const existingUser = await db
+        // 2. Filter out null values and only include allowable fields
+        const allowedFields = [
+          "name",
+          "bio",
+          "displayName",
+          "avatar",
+          "email",
+          "location",
+          "address",
+          "banner",
+          "username",
+          "image",
+        ];
+
+        const filteredInput = Object.fromEntries(
+          Object.entries(userInput).filter(
+            ([key, value]) => value !== null && allowedFields.includes(key)
+          )
+        );
+
+        // 3. Validate critical fields if present
+        if (filteredInput.email && !isValidEmail(filteredInput.email)) {
+          throw new GraphQLError("Invalid email format", {
+            extensions: {
+              code: "BAD_USER_INPUT",
+              http: { status: 400 },
+            },
+          });
+        }
+
+        // 4. Update user and return the result
+        // Update the user
+        await db.update(users).set(filteredInput).where(eq(users.id, userId));
+
+        // Get the updated user
+        const updatedUser = await db
           .select()
           .from(users)
           .where(eq(users.id, userId))
           .limit(1);
 
-        if (existingUser.length === 0) {
+        if (!updatedUser[0]) {
           throw new GraphQLError("User not found", {
             extensions: {
               code: "NOT_FOUND",
@@ -118,32 +177,6 @@ const userResolvers = {
           });
         }
 
-        if (
-          userInput.username &&
-          userInput.username.toLowerCase() ===
-            existingUser[0].username?.toLowerCase()
-        ) {
-          return {
-            success: false,
-            message: "Your username is already set as " + userInput.username,
-            user: existingUser[0],
-          };
-        }
-
-        // 3. Update user with only the provided fields
-        const filteredInput = Object.fromEntries(
-          Object.entries(userInput).filter(([_, v]) => v !== null)
-        );
-
-        await db.update(users).set(filteredInput).where(eq(users.id, userId));
-
-        // 4. Fetch updated user
-        const updatedUser = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, userId))
-          .limit(1);
-
         return {
           success: true,
           message: "User updated successfully",
@@ -151,14 +184,31 @@ const userResolvers = {
         };
       } catch (error) {
         console.error("Update User Error:", error);
-        throw new GraphQLError("Failed to update user", {
-          extensions: {
-            code: "INTERNAL_SERVER_ERROR",
-            http: { status: 500 },
-            originalError:
-              error instanceof Error ? error.message : String(error),
-          },
-        });
+        const status =
+          error instanceof GraphQLError &&
+          "http" in (error.extensions || {}) &&
+          typeof error.extensions.http === "object" &&
+          error.extensions.http !== null &&
+          "status" in error.extensions.http
+            ? (error.extensions.http as { status: number }).status
+            : 500;
+
+        throw new GraphQLError(
+          error instanceof GraphQLError
+            ? error.message
+            : "Failed to update user",
+          {
+            extensions: {
+              code:
+                error instanceof GraphQLError
+                  ? error.extensions.code
+                  : "INTERNAL_SERVER_ERROR",
+              http: { status },
+              originalError:
+                error instanceof Error ? error.message : String(error),
+            },
+          }
+        );
       }
     },
 
@@ -172,7 +222,7 @@ const userResolvers = {
 
       const lowercaseUsername = username.toLowerCase();
 
-      if (!session || !session.user) {
+      if (!session?.id) {
         return {
           success: false,
           message: "Not authenticated",
@@ -182,12 +232,19 @@ const userResolvers = {
 
       try {
         // Check if username is already taken using case-insensitive comparison
+<<<<<<< HEAD
         const existingUser = await db.query.users.findFirst({
-          where: (u: typeof schema.users) =>
-            sql`LOWER(${u.username}) = ${lowercaseUsername}`,
+          where: (u) => sql`LOWER(${u.username}) = ${lowercaseUsername}`,
         });
+=======
+        const existingUser = await db
+          .select()
+          .from(users)
+          .where(sql`LOWER(${users.username}) = ${lowercaseUsername}`)
+          .limit(1);
+>>>>>>> origin/main
 
-        if (existingUser) {
+        if (existingUser.length > 0) {
           return {
             success: false,
             message: "Username already taken",
@@ -196,12 +253,19 @@ const userResolvers = {
         }
 
         // Get the user's current record
+<<<<<<< HEAD
         const currentUser = await db.query.users.findFirst({
-          where: (u: typeof schema.users) =>
-            eq(u.email, session.user!.email as string),
+          where: (u) => eq(u.email, session.email as string),
         });
+=======
+        const currentUser = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, session.user!.email as string))
+          .limit(1);
+>>>>>>> origin/main
 
-        if (!currentUser) {
+        if (currentUser.length === 0) {
           return {
             success: false,
             message: "User not found",
@@ -215,9 +279,8 @@ const userResolvers = {
           .set({
             username: lowercaseUsername,
             onboardingCompleted: true,
-            participantId: Snowflake.generate(),
           })
-          .where(eq(users.email, session.user!.email as string))
+          .where(eq(users.email, session.email as string))
           .returning();
 
         return {
@@ -235,10 +298,50 @@ const userResolvers = {
       }
     },
 
-    // Delete a user
-    deleteUser: async (_: any, { id }: { id: string }): Promise<boolean> => {
-      // Implement logic to delete a user from the database
-      return true;
+    /**
+     * Deletes the currently authenticated user and all their associated data.
+     * This operation triggers cascade deletion in the database for:
+     * - OAuth accounts
+     * - Sessions
+     * - Authenticators
+     * - Verification sessions
+     * - Conversation participants
+     * - Messages
+     *
+     * @returns {Promise<boolean>} True if deletion was successful
+     * @throws {GraphQLError} If user is not authenticated or deletion fails
+     */
+    deleteUser: async (
+      _: any,
+      __: any,
+      context: GraphqlContext
+    ): Promise<boolean> => {
+      const { db, session } = context;
+
+      // Ensure user is authenticated before proceeding
+      if (!session?.id) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      try {
+        // Delete user record - cascade deletion will handle related records
+        await db.delete(users).where(eq(users.id, session.id));
+        return true;
+      } catch (error) {
+        // Log error for debugging and throw user-friendly error
+        console.error("Delete user error:", error);
+        throw new GraphQLError("Failed to delete user", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            http: { status: 500 },
+          },
+        });
+      }
     },
   },
 };

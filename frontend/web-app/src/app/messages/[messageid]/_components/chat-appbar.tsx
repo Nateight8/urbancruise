@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { IconChevronLeft, IconUser } from "@tabler/icons-react";
 import { ConversationParticipant } from "@/graphql/operations/conversation-operations";
 import { useCachedUser } from "@/hooks/use-cached-user";
-
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 export default function ChatAppBar({
   participants,
+  loading,
 }: {
   participants: ConversationParticipant[];
+  loading: boolean;
 }) {
   const cachedUser = useCachedUser();
 
@@ -16,30 +19,41 @@ export default function ChatAppBar({
     (participant) => participant.user.username !== cachedUser?.username
   );
 
+  const router = useRouter();
+
   return (
-    <header className="flex-shrink-0  h-16 flex  items-center">
+    <header className="flex-shrink-0 p-2 md:p-0 h-16 flex  items-center">
       <div className="flex items-center gap-3">
         <Button
           className="rounded-full"
           variant="muted"
           size="icon"
           aria-label="Add new item"
+          onClick={() => router.back()}
         >
           <IconChevronLeft size={16} aria-hidden="true" />
         </Button>
-        <button className="flex items-center gap-2 hover:cursor-pointer hover:bg-accent/50 rounded-3xl p-1 pr-3 hover:border border border-transparent hover:border-border">
-          <Avatar className="size-10">
-            <AvatarImage
-              src={otherParticipant?.user.image ?? "/images/pfp/pfp.jpeg"}
-            />
-            <AvatarFallback>
-              <IconUser size={16} aria-hidden="true" />
-            </AvatarFallback>
-          </Avatar>
-          <p className="text-base font-semibold capitalize">
-            {otherParticipant?.user.username}
-          </p>
-        </button>
+
+        {loading ? (
+          <div className="flex items-center gap-2 p-1 pr-3 ">
+            <Skeleton className="size-10 rounded-full" />
+            <Skeleton className="h-4 w-8" />
+          </div>
+        ) : (
+          <button className="flex items-center gap-2 hover:cursor-pointer hover:bg-accent/50 rounded-3xl p-1 pr-3 hover:border border border-transparent hover:border-border">
+            <Avatar className="size-10">
+              <AvatarImage
+                src={otherParticipant?.user.image ?? "/images/pfp/pfp.jpeg"}
+              />
+              <AvatarFallback>
+                <IconUser size={16} aria-hidden="true" />
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-base font-semibold capitalize">
+              {otherParticipant?.user.username}
+            </p>
+          </button>
+        )}
       </div>
     </header>
   );
